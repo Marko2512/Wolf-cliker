@@ -6,53 +6,48 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body { background: #0b1016; color: white; text-align: center; font-family: sans-serif; user-select: none; margin: 0; padding: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
-        * { -webkit-tap-highlight-color: transparent; outline: none; }
         .header { font-size: 60px; font-weight: bold; color: #5da9f6; margin-top: 30px; }
         .click-container { flex: 1; display: flex; align-items: center; justify-content: center; }
-        .wolf-btn { width: 260px; height: 260px; border-radius: 50%; border: 6px solid #4eb5f1; background: url('1774235761232.png') center/cover; box-shadow: 0 0 30px #2481cc; cursor: pointer; transition: transform 0.1s; }
+        .wolf-btn { width: 260px; height: 260px; border-radius: 50%; border: 6px solid #4eb5f1; background: url('https://marko2512.github.io/Wolf-cliker/1774235761232.png') center/cover; box-shadow: 0 0 30px #2481cc; cursor: pointer; transition: transform 0.1s; }
         .wolf-btn:active { transform: scale(0.95); }
         .energy-section { padding: 0 30px 110px; }
         .energy-info { display: flex; justify-content: center; align-items: center; gap: 8px; font-size: 18px; font-weight: bold; margin-bottom: 8px; color: #f1c40f; }
         .progress-bg { width: 100%; height: 12px; background: #1c2a38; border-radius: 10px; overflow: hidden; }
         .progress-fill { width: 100%; height: 100%; background: #4eb5f1; border-radius: 10px; transition: width 0.2s; }
         .nav-menu { position: fixed; bottom: 0; width: 100%; height: 85px; background: #131d27; border-top: 1px solid #23313f; display: flex; justify-content: space-around; align-items: center; padding-bottom: 15px; }
-        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; color: #5da9f6; font-size: 11px; font-weight: bold; cursor: pointer; text-decoration: none; }
+        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; color: #5da9f6; font-size: 11px; font-weight: bold; cursor: pointer; }
         .nav-item span { font-size: 24px; margin-bottom: 2px; }
     </style>
 </head>
 <body>
     <div class="header" id="balance">0</div>
-    <div class="click-container">
-        <div class="wolf-btn" onclick="tap()"></div>
-    </div>
+    <div class="click-container"><div class="wolf-btn" onclick="tap()"></div></div>
     <div class="energy-section">
         <div class="energy-info">⚡ <span id="en-val">2500</span> / 2500</div>
         <div class="progress-bg"><div class="progress-fill" id="en-bar"></div></div>
     </div>
     <div class="nav-menu">
-        <div class="nav-item"><span>🎁</span>БОНУС</div>
+        <div class="nav-item" onclick="getBonus()"><span>🎁</span>БОНУС</div>
         <div class="nav-item" onclick="saveData()"><span>💾</span>СОХРАНИТЬ</div>
-        <div class="nav-item"><span>👥</span>РЕФЫ</div>
-        <div class="nav-item"><span>🏆</span>ТОП</div>
+        <div class="nav-item" onclick="alert('Скоро!')"><span>👥</span>РЕФЫ</div>
+        <div class="nav-item" onclick="alert('Скоро!')"><span>🏆</span>ТОП</div>
     </div>
     <script>
         const tg = window.Telegram.WebApp;
         const params = new URLSearchParams(window.location.search);
         let bal = parseInt(params.get('bal')) || 0;
         let en = parseInt(params.get('en')) || 2500;
+        const maxEn = 2500;
         function update() {
             document.getElementById('balance').innerText = bal;
             document.getElementById('en-val').innerText = en;
-            document.getElementById('en-bar').style.width = (en / 2500 * 100) + '%';
+            document.getElementById('en-bar').style.width = (en / maxEn * 100) + '%';
         }
         update();
-        function tap() {
-            if (en > 0) { bal++; en--; update(); }
-        }
-        function saveData() {
-            tg.sendData(JSON.stringify({bal: bal, en: en}));
-            tg.close();
-        }
+        function tap() { if (en > 0) { bal++; en--; update(); } }
+        setInterval(() => { if (en < maxEn) { en++; update(); } }, 1000);
+        function getBonus() { bal += 500; update(); alert("Бонус +500!"); }
+        function saveData() { tg.sendData(JSON.stringify({bal: bal, en: en})); }
         tg.expand();
     </script>
 </body>
