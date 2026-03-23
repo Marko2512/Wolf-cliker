@@ -32,38 +32,22 @@
         <div class="nav-item" onclick="alert('Скоро!')"><span>👥</span>РЕФЫ</div>
         <div class="nav-item" onclick="alert('Скоро!')"><span>🏆</span>ТОП</div>
     </div>
-
     <script>
         const tg = window.Telegram.WebApp;
         const params = new URLSearchParams(window.location.search);
         let bal = parseInt(params.get('bal')) || 0;
         let en = parseInt(params.get('en')) || 2500;
         const maxEn = 2500;
-
         function update() {
             document.getElementById('balance').innerText = bal;
             document.getElementById('en-val').innerText = en;
             document.getElementById('en-bar').style.width = (en / maxEn * 100) + '%';
         }
         update();
-
-        function tap() {
-            if (en > 0) { bal++; en--; update(); }
-        }
-
-        setInterval(() => {
-            if (en < maxEn) { en++; update(); }
-        }, 1000);
-
-        function getBonus() {
-            bal += 500;
-            update();
-            alert("Бонус +500!");
-        }
-
-        function saveData() {
-            tg.sendData(JSON.stringify({bal: bal, en: en}));
-        }
+        function tap() { if (en > 0) { bal++; en--; update(); } }
+        setInterval(() => { if (en < maxEn) { en++; update(); } }, 1000);
+        function getBonus() { bal += 500; update(); alert("Бонус +500 монет!"); }
+        function saveData() { tg.sendData(JSON.stringify({bal: bal, en: en})); }
         tg.expand();
     </script>
 </body>
