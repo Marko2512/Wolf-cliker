@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body { background: #0e1621; color: white; text-align: center; font-family: sans-serif; margin: 0; padding: 0; overflow: hidden; display: flex; flex-direction: column; height: 100vh; }
+        #score { font-size: 45px; font-weight: bold; margin-top: 20px; color: #64b5f6; }
+        .game-area { flex-grow: 1; display: flex; align-items: center; justify-content: center; padding-bottom: 120px; }
+        #wolf { width: 180px; height: 180px; border-radius: 50%; border: 5px solid #64b5f6; background: url('https://raw.githubusercontent.com/Marko2512/Wolf-cliker/main/1774235761232.png') center/cover; }
+        .bottom-nav { position: fixed; bottom: 130px; left: 0; width: 100%; display: flex; flex-direction: column; align-items: center; }
+        #en-text { font-size: 16px; margin-bottom: 8px; }
+        #energy-bar { width: 70%; background: #222; height: 10px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #444; overflow: hidden; }
+        #fill { background: #64b5f6; height: 100%; width: 100%; }
+        #save-btn { background: #26a69a; border: none; color: white; padding: 15px 0; width: 85%; border-radius: 15px; font-size: 18px; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div id="score">0</div>
+    <div class="game-area"><div id="wolf"></div></div>
+    <div class="bottom-nav">
+        <div id="en-text">⚡ 2500 / 2500</div>
+        <div id="energy-bar"><div id="fill"></div></div>
+        <button id="save-btn">СОХРАНИТЬ И ВЫЙТИ</button>
+    </div>
+    <script>
+        const tg = window.Telegram.WebApp;
+        const p = new URLSearchParams(window.location.search);
+        let clicks = parseInt(p.get('bal')) || 0, energy = parseInt(p.get('en')) || 2500;
+        function up() { document.getElementById('score').innerText = clicks; document.getElementById('en-text').innerText = `⚡ ${energy} / 2500`; document.getElementById('fill').style.width = (energy/2500*100)+'%'; }
+        function tap(e) { e.preventDefault(); if(energy > 0) { clicks++; energy--; up(); } }
+        const wolf = document.getElementById('wolf');
+        wolf.addEventListener('touchstart', tap);
+        document.getElementById('save-btn').onclick = () => { tg.sendData(JSON.stringify({ clicks: clicks, energy: energy })); tg.close(); };
+        up(); tg.expand();
+    </script>
+</body>
+</html>
