@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body { background: #0e1621; color: white; text-align: center; font-family: sans-serif; margin: 0; padding: 0; overflow: hidden; height: 100vh; display: flex; flex-direction: column; }
+        #score { font-size: 50px; font-weight: bold; margin: 20px 0; color: #64b5f6; }
+        .wolf-btn { width: 200px; height: 200px; border-radius: 50%; border: 5px solid #64b5f6; background: url('https://raw.githubusercontent.com/Marko2512/Wolf-cliker/main/1774235761232.png') center/cover; margin: auto; cursor: pointer; touch-action: manipulation; }
+        .menu { background: #17212b; padding: 20px 0; display: flex; justify-content: space-around; border-top: 1px solid #2b3b4d; padding-bottom: 30px; }
+        button { background: #242f3d; border: 1px solid #64b5f6; color: white; padding: 10px; border-radius: 8px; cursor: pointer; min-width: 100px; }
+    </style>
+</head>
+<body>
+    <div id="score">0</div>
+    <div class="wolf-btn" onclick="tap()"></div>
+    <div style="margin: 15px 0;">⚡ Энергия: <span id="en">2500</span></div>
+    <div class="menu">
+        <button onclick="save()">💾 СОХРАНИТЬ</button>
+        <button onclick="getBonus()">🎁 БОНУС</button>
+    </div>
+    <script>
+        const tg = window.Telegram.WebApp;
+        const p = new URLSearchParams(window.location.search);
+        let b = parseInt(p.get('bal')) || 0, e = parseInt(p.get('en')) || 2500;
+
+        function update() {
+            document.getElementById('score').innerText = b;
+            document.getElementById('en').innerText = e;
+        }
+        function tap() {
+            if(e > 0) { b++; e--; update(); tg.HapticFeedback.impactOccurred('medium'); }
+        }
+        function getBonus() {
+            if(!localStorage.getItem('wolf_b')) { b += 500; localStorage.setItem('wolf_b', '1'); update(); alert('Бонус +500!'); }
+            else { alert('Уже получено!'); }
+        }
+        function save() {
+            tg.sendData(JSON.stringify({bal: b, en: e}));
+            tg.close();
+        }
+        update(); tg.expand();
+    </script>
+</body>
+</html>
