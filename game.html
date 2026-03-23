@@ -11,18 +11,18 @@
         .click-container { flex: 1; display: flex; align-items: center; justify-content: center; }
         .wolf-btn { width: 270px; height: 270px; border-radius: 50%; background: url('https://marko2512.github.io/Wolf-cliker/1774235761232.png') center/cover no-repeat; box-shadow: 0 0 40px rgba(78, 181, 241, 0.5); cursor: pointer; transition: 0.1s; border: none; }
         .wolf-btn:active { transform: scale(0.92); }
-        .energy-section { padding: 0 30px 100px; }
-        .progress-bg { width: 100%; height: 12px; background: #1c2a38; border-radius: 15px; margin-top: 10px; }
+        .energy-section { padding-bottom: 100px; }
+        .progress-bg { width: 80%; height: 12px; background: #1c2a38; border-radius: 15px; margin: 10px auto; }
         .progress-fill { height: 100%; background: #4eb5f1; border-radius: 15px; transition: width 0.2s; }
         .nav-menu { position: fixed; bottom: 0; width: 100%; height: 85px; background: #131d27; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #23313f; }
-        .nav-item { color: #5da9f6; font-size: 11px; font-weight: bold; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 5px; }
+        .nav-item { color: #5da9f6; font-size: 11px; font-weight: bold; cursor: pointer; display: flex; flex-direction: column; align-items: center; }
     </style>
 </head>
-<body oncontextmenu="return false;">
+<body>
     <div class="header" id="balance">0</div>
-    <div class="click-container"><div class="wolf-btn" onclick="tap()" draggable="false"></div></div>
+    <div class="click-container"><div class="wolf-btn" onclick="tap()"></div></div>
     <div class="energy-section">
-        <div style="font-size: 18px; color: #f1c40f;">⚡ <span id="en-val">2500</span></div>
+        <div style="color: #f1c40f;">⚡ <span id="en-val">2500</span></div>
         <div class="progress-bg"><div class="progress-fill" id="en-bar"></div></div>
     </div>
     <div class="nav-menu">
@@ -42,41 +42,36 @@
             document.getElementById('balance').innerText = bal;
             document.getElementById('en-val').innerText = en;
             document.getElementById('en-bar').style.width = (en / 2500 * 100) + '%';
-            // Авто-отправка данных боту при каждом изменении
-            tg.sendData(JSON.stringify({bal: bal, en: en}));
         }
 
         function tap() {
-            if (en > 0) { 
-                bal++; en--; 
-                updateUI(); 
-                tg.HapticFeedback.impactOccurred('light'); 
-            }
+            if (en > 0) { bal++; en--; updateUI(); tg.HapticFeedback.impactOccurred('light'); }
         }
+
+        // Авто-сохранение каждые 5 секунд
+        setInterval(() => {
+            tg.sendData(JSON.stringify({bal: bal, en: en}));
+        }, 5000);
 
         function copyRef() {
             const link = "https://t.me/WolfMany_bot?start=" + uid;
-            const temp = document.createElement("textarea");
-            document.body.appendChild(temp);
-            temp.value = link;
-            temp.select();
-            document.execCommand("copy");
-            document.body.removeChild(temp);
+            const el = document.createElement('textarea');
+            el.value = link; document.body.appendChild(el);
+            el.select(); document.execCommand('copy');
+            document.body.removeChild(el);
             tg.showAlert("Ссылка скопирована!\n" + link);
         }
 
         function getBonus() {
-            const last = localStorage.getItem('last_b');
+            const last = localStorage.getItem('l_b');
             if (!last || Date.now() - last > 86400000) {
-                bal += 500; localStorage.setItem('last_b', Date.now());
+                bal += 500; localStorage.setItem('l_b', Date.now());
                 updateUI(); tg.showAlert("Бонус +500!");
             } else { tg.showAlert("Жди 24 часа!"); }
         }
 
         setInterval(() => { if (en < 2500) { en++; updateUI(); } }, 1000);
-        
-        updateUI();
-        tg.expand();
+        updateUI(); tg.expand();
     </script>
 </body>
 </html>
