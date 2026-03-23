@@ -9,7 +9,7 @@
         body { background: #0b1016; color: white; text-align: center; font-family: sans-serif; margin: 0; padding: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
         .header { font-size: 60px; font-weight: bold; color: #5da9f6; margin: 25px 0; }
         .click-container { flex: 1; display: flex; align-items: center; justify-content: center; }
-        .wolf-btn { width: 270px; height: 270px; border-radius: 50%; background: url('https://marko2512.github.io/Wolf-cliker/1774235761232.png') center/cover no-repeat; box-shadow: 0 0 40px rgba(78, 181, 241, 0.5); cursor: pointer; transition: transform 0.05s; border: none; }
+        .wolf-btn { width: 270px; height: 270px; border-radius: 50%; background: url('https://marko2512.github.io/Wolf-cliker/1774235761232.png') center/cover no-repeat; box-shadow: 0 0 40px rgba(78, 181, 241, 0.5); cursor: pointer; transition: 0.1s; border: none; }
         .wolf-btn:active { transform: scale(0.92); }
         .energy-section { padding: 0 30px 100px; }
         .progress-bg { width: 100%; height: 12px; background: #1c2a38; border-radius: 15px; margin-top: 10px; }
@@ -27,7 +27,6 @@
     </div>
     <div class="nav-menu">
         <div class="nav-item" onclick="getBonus()"><span>🎁</span>БОНУС</div>
-        <div class="nav-item" id="btn-save"><span>💾</span>ХРАНИТЬ</div>
         <div class="nav-item" onclick="copyRef()"><span>👥</span>РЕФЫ</div>
         <div class="nav-item" onclick="tg.showAlert('Топ скоро!')"><span>🏆</span>ТОП</div>
     </div>
@@ -43,13 +42,18 @@
             document.getElementById('balance').innerText = bal;
             document.getElementById('en-val').innerText = en;
             document.getElementById('en-bar').style.width = (en / 2500 * 100) + '%';
+            // Авто-отправка данных боту при каждом изменении
+            tg.sendData(JSON.stringify({bal: bal, en: en}));
         }
 
         function tap() {
-            if (en > 0) { bal++; en--; updateUI(); tg.HapticFeedback.impactOccurred('light'); }
+            if (en > 0) { 
+                bal++; en--; 
+                updateUI(); 
+                tg.HapticFeedback.impactOccurred('light'); 
+            }
         }
 
-        // КОПИРОВАНИЕ РЕФЕРАЛКИ
         function copyRef() {
             const link = "https://t.me/WolfMany_bot?start=" + uid;
             const temp = document.createElement("textarea");
@@ -58,29 +62,19 @@
             temp.select();
             document.execCommand("copy");
             document.body.removeChild(temp);
-            tg.showAlert("Ссылка скопирована в буфер!\n" + link);
+            tg.showAlert("Ссылка скопирована!\n" + link);
         }
-
-        // ЛОГИКА СОХРАНЕНИЯ (Через MainButton)
-        document.getElementById('btn-save').onclick = function() {
-            tg.MainButton.setText("ПОДТВЕРДИТЬ СОХРАНЕНИЕ");
-            tg.MainButton.show();
-        };
-
-        tg.onEvent('mainButtonClicked', function() {
-            tg.sendData(JSON.stringify({bal: bal, en: en}));
-            tg.close(); // Закрываем приложение, чтобы отправить данные боту
-        });
 
         function getBonus() {
             const last = localStorage.getItem('last_b');
             if (!last || Date.now() - last > 86400000) {
                 bal += 500; localStorage.setItem('last_b', Date.now());
-                updateUI(); tg.showAlert("Бонус +500 начислен!");
-            } else { tg.showAlert("Приходи через 24 часа!"); }
+                updateUI(); tg.showAlert("Бонус +500!");
+            } else { tg.showAlert("Жди 24 часа!"); }
         }
 
         setInterval(() => { if (en < 2500) { en++; updateUI(); } }, 1000);
+        
         updateUI();
         tg.expand();
     </script>
