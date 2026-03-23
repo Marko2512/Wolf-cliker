@@ -5,25 +5,62 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        * { -webkit-tap-highlight-color: transparent; outline: none; box-sizing: border-box; }
-        body { background: #0b1016; color: white; text-align: center; font-family: sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+        * { 
+            -webkit-tap-highlight-color: transparent; 
+            outline: none; 
+            box-sizing: border-box; 
+            touch-action: manipulation;
+        }
+        body { 
+            background: #0b1016; 
+            color: white; 
+            text-align: center; 
+            font-family: sans-serif; 
+            margin: 0; 
+            display: flex; 
+            flex-direction: column; 
+            height: 100vh; 
+            overflow: hidden; 
+            user-select: none;
+            -webkit-user-select: none;
+        }
         
-        /* Баланс и Энергия */
-        #balance { font-size: 60px; font-weight: bold; color: #5da9f6; margin-top: 20px; }
-        .energy { color: #f1c40f; font-size: 18px; margin-bottom: 20px; }
+        #balance { font-size: 55px; font-weight: bold; color: #5da9f6; margin-top: 20px; text-shadow: 0 0 15px rgba(93, 169, 246, 0.5); }
+        .energy { color: #f1c40f; font-size: 18px; margin-bottom: 20px; font-weight: bold; }
 
-        /* Кнопка Волка */
         .click-zone { flex: 1; display: flex; align-items: center; justify-content: center; }
-        .wolf-btn { width: 260px; height: 260px; border-radius: 50%; background: url('https://marko2512.github.io/Wolf-cliker/1774235761232.png') center/cover; box-shadow: 0 0 40px #4eb5f1; cursor: pointer; transition: 0.1s; border: 5px solid #131d27; }
-        .wolf-btn:active { transform: scale(0.92); }
+        
+        /* Кнопка с защитой от жестов браузера */
+        .wolf-btn { 
+            width: 270px; 
+            height: 270px; 
+            border-radius: 50%; 
+            background: url('https://marko2512.github.io/Wolf-cliker/1774235761232.png') center/cover; 
+            box-shadow: 0 0 50px #4eb5f1; 
+            cursor: pointer; 
+            transition: transform 0.05s; 
+            border: 6px solid #131d27;
+            touch-action: none; 
+        }
+        .wolf-btn:active { transform: scale(0.95); }
 
-        /* Кнопка выхода */
-        .save-btn { background: #27ae60; color: white; border: none; padding: 15px 30px; border-radius: 12px; font-weight: bold; cursor: pointer; margin-bottom: 100px; font-size: 16px; }
+        .save-btn { 
+            background: linear-gradient(135deg, #27ae60, #2ecc71); 
+            color: white; 
+            border: none; 
+            padding: 16px 35px; 
+            border-radius: 15px; 
+            font-weight: bold; 
+            cursor: pointer; 
+            margin-bottom: 100px; 
+            font-size: 16px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
 
         /* Нижнее меню */
-        .nav { position: fixed; bottom: 0; width: 100%; height: 80px; background: #131d27; display: flex; justify-content: space-around; align-items: center; border-top: 2px solid #23313f; }
-        .nav-item { color: #5da9f6; font-size: 10px; font-weight: bold; cursor: pointer; display: flex; flex-direction: column; gap: 5px; }
-        .nav-item span:first-child { font-size: 24px; }
+        .nav { position: fixed; bottom: 0; width: 100%; height: 85px; background: #131d27; display: flex; justify-content: space-around; align-items: center; border-top: 2px solid #23313f; padding-bottom: 10px; }
+        .nav-item { color: #5da9f6; font-size: 10px; font-weight: bold; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 5px; }
+        .nav-item span:first-child { font-size: 26px; }
     </style>
 </head>
 <body>
@@ -31,7 +68,7 @@
     <div class="energy">⚡ <span id="en-val">2500</span></div>
     
     <div class="click-zone">
-        <div class="wolf-btn" onclick="tap()"></div>
+        <div class="wolf-btn" id="target"></div>
     </div>
 
     <button class="save-btn" onclick="saveAndExit()">💾 СОХРАНИТЬ И ВЫЙТИ</button>
@@ -47,28 +84,33 @@
         const tg = window.Telegram.WebApp;
         const params = new URLSearchParams(window.location.search);
         
-        // Берем то, что уже есть в базе данных бота
         let dbBal = parseInt(params.get('bal')) || 0; 
-        let sessionTaps = 0; // Новые клики за текущий заход
+        let sessionTaps = 0; 
         let en = parseInt(params.get('en')) || 2500;
         const uid = params.get('uid');
 
         function updateUI() {
-            // Показываем сумму: база + новые клики
             document.getElementById('balance').innerText = (dbBal + sessionTaps).toLocaleString();
             document.getElementById('en-val').innerText = en;
         }
 
-        function tap() {
-            if (en > 0) { 
-                sessionTaps++; 
-                en--; 
-                updateUI(); 
-                tg.HapticFeedback.impactOccurred('light'); 
-            }
-        }
+        const btn = document.getElementById('target');
 
-        // Функция отправки итоговой суммы боту
+        // ПОДДЕРЖКА МУЛЬТИТАЧА (3 ПАЛЬЦА И БОЛЬШЕ)
+        btn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            // Считаем каждое касание пальца отдельно
+            const touches = e.changedTouches;
+            for (let i = 0; i < touches.length; i++) {
+                if (en > 0) {
+                    sessionTaps++;
+                    en--;
+                    tg.HapticFeedback.impactOccurred('light');
+                }
+            }
+            updateUI();
+        }, {passive: false});
+
         function syncData() {
             tg.sendData(JSON.stringify({
                 bal: (dbBal + sessionTaps), 
@@ -78,13 +120,15 @@
 
         function saveAndExit() {
             syncData();
-            setTimeout(() => { tg.close(); }, 200);
+            setTimeout(() => { tg.close(); }, 250);
         }
 
-        // Автосейв каждые 10 секунд (страховка от вылета)
-        setInterval(syncData, 10000);
+        // Автосохранение
+        setInterval(syncData, 15000);
 
-        // Бонусная система
+        // Реген энергии
+        setInterval(() => { if (en < 2500) { en++; updateUI(); } }, 2000);
+
         function getBonus() {
             const now = Date.now();
             const last = localStorage.getItem('wolf_bonus_' + uid);
@@ -92,27 +136,23 @@
                 sessionTaps += 1000; 
                 localStorage.setItem('wolf_bonus_' + uid, now);
                 updateUI(); 
-                tg.showAlert("🎁 Твой ежедневный бонус +1000 монет!");
+                tg.showAlert("🎁 Бонус +1000 монет получен!");
             } else { 
-                tg.showAlert("Бонус уже получен! Заходи завтра."); 
+                tg.showAlert("Заходи за бонусом завтра!"); 
             }
         }
 
         function copyRef() {
-            tg.showAlert("Твоя реф. ссылка:\nhttps://t.me/WolfMany_bot?start=" + uid);
+            tg.showAlert("Ссылка для друзей:\nhttps://t.me/WolfMany_bot?start=" + uid);
         }
 
         function showTop() {
-            tg.showAlert("🏆 ТОП ЛИДЕРОВ:\n1. Wolf Marko: 5,000,000\n2. Ты: " + (dbBal + sessionTaps));
+            tg.showAlert("🏆 ТОП ЛИДЕРОВ\n1. Wolf Marko: 5M\n2. Ты: " + (dbBal + sessionTaps));
         }
 
         function showProfile() {
-            const user = tg.initDataUnsafe.user;
-            tg.showAlert("👤 ТВОЙ ПРОФИЛЬ:\nНик: " + (user ? user.first_name : "Волк") + "\nID: " + uid + "\nВсего монет: " + (dbBal + sessionTaps));
+            tg.showAlert("👤 ПРОФИЛЬ\nID: " + uid + "\nВсего монет: " + (dbBal + sessionTaps));
         }
-
-        // Реген энергии
-        setInterval(() => { if (en < 2500) { en++; updateUI(); } }, 2000);
 
         updateUI();
         tg.expand();
