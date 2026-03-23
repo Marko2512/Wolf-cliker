@@ -11,8 +11,8 @@
         #wolf { width: 220px; height: 220px; border-radius: 50%; border: 6px solid #64b5f6; background: url('https://raw.githubusercontent.com/Marko2512/Wolf-cliker/main/1774235761232.png') center/cover; transition: transform 0.1s; cursor: pointer; }
         #wolf:active { transform: scale(0.92); }
         .bottom-menu { width: 100%; background: #17212b; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #2b3b4d; padding-bottom: 30px; }
-        .menu-item { background: none; border: none; color: #8ab4f8; font-size: 11px; font-weight: bold; display: flex; flex-direction: column; align-items: center; cursor: pointer; }
-        .menu-item:disabled { opacity: 0.3; cursor: not-allowed; }
+        .menu-item { background: none; border: none; color: #8ab4f8; font-size: 11px; font-weight: bold; display: flex; flex-direction: column; align-items: center; cursor: pointer; width: 25%; }
+        .menu-item:disabled { color: #444; cursor: not-allowed; }
         #energy-container { width: 100%; margin-bottom: 10px; }
         #energy-bar { width: 85%; background: #222; height: 10px; border-radius: 10px; margin: 5px auto; border: 1px solid #444; overflow: hidden; }
         #fill { background: #64b5f6; height: 100%; width: 100%; transition: width 0.2s; }
@@ -26,10 +26,10 @@
         <div id="energy-bar"><div id="fill"></div></div>
     </div>
     <div class="bottom-menu">
-        <button class="menu-item" id="bonusBtn" onclick="takeBonus()"><span>🎁</span> БОНУС</button>
+        <button class="menu-item" id="bonusBtn" onclick="takeBonus()"><span>🎁</span> <div id="bonusText">БОНУС</div></button>
         <button class="menu-item" onclick="saveData()"><span>💾</span> СОХРАНИТЬ</button>
         <button class="menu-item" onclick="showRefs()"><span>🤝</span> РЕФЫ</button>
-        <button class="menu-item" onclick="alert('Топ обновится после 1000 игроков!')"><span>🏆</span> ТОП</button>
+        <button class="menu-item" onclick="alert('Топ скоро!')"><span>🏆</span> ТОП</button>
     </div>
 
     <script>
@@ -43,34 +43,40 @@
             document.getElementById('score').innerText = clicks;
             document.getElementById('en-num').innerText = energy;
             document.getElementById('fill').style.width = (energy/2500*100)+'%';
-            checkBonusTimer();
+            checkBonus();
         }
 
-        // РЕФЕРАЛЫ: ПОКАЗЫВАЕМ ССЫЛКУ
+        function takeBonus() {
+            const now = Date.now();
+            localStorage.setItem('wolf_last_bonus', now);
+            clicks += 500;
+            tg.HapticFeedback.notificationOccurred('success');
+            alert('Бонус +500 получен!');
+            updateUI();
+        }
+
+        function checkBonus() {
+            const last = localStorage.getItem('wolf_last_bonus');
+            const btn = document.getElementById('bonusBtn');
+            const txt = document.getElementById('bonusText');
+            if (last) {
+                const diff = Date.now() - parseInt(last);
+                const day = 24 * 60 * 60 * 1000;
+                if (diff < day) {
+                    btn.disabled = true;
+                    const timeLeft = day - diff;
+                    const hours = Math.floor(timeLeft / (1000 * 60 * 60));
+                    txt.innerText = hours + "ч";
+                    return;
+                }
+            }
+            btn.disabled = false;
+            txt.innerText = "БОНУС";
+        }
+
         function showRefs() {
             const link = `https://t.me/Wolfmanybot?start=${uid}`;
-            alert(`Твоя ссылка:\n${link}\n\nСкопируй и отправь друзьям!`);
-        }
-
-        // БОНУС РАЗ В 24 ЧАСА
-        function takeBonus() {
-            const lastBonus = localStorage.getItem('lastBonusTime');
-            const now = Date.now();
-            
-            if (!lastBonus || now - lastBonus > 24 * 60 * 60 * 1000) {
-                clicks += 500;
-                localStorage.setItem('lastBonusTime', now);
-                alert('Бонус +500 получен! Приходи через 24 часа.');
-                updateUI();
-            }
-        }
-
-        function checkBonusTimer() {
-            const lastBonus = localStorage.getItem('lastBonusTime');
-            const now = Date.now();
-            if (lastBonus && now - lastBonus < 24 * 60 * 60 * 1000) {
-                document.getElementById('bonusBtn').disabled = true;
-            }
+            tg.showPopup({ title: 'Твоя ссылка', message: link, buttons: [{type: 'close'}] });
         }
 
         document.getElementById('wolf').addEventListener('touchstart', (e) => {
@@ -85,6 +91,7 @@
 
         updateUI();
         tg.expand();
+        setInterval(checkBonus, 60000); // Проверка каждую минуту
     </script>
 </body>
 </html>
