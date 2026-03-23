@@ -5,71 +5,128 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        * { -webkit-tap-highlight-color: transparent; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; outline: none; }
-        body { background: #0e1621; color: white; text-align: center; font-family: sans-serif; margin: 0; padding: 0; overflow: hidden; display: flex; flex-direction: column; height: 100vh; justify-content: space-between; }
-        #score { font-size: 60px; font-weight: bold; margin-top: 30px; color: #64b5f6; }
+        /* УБИРАЕМ СИНЮЮ ОБВОДКУ И ПОДСВЕТКУ ПРИ НАЖАТИИ (ОБЯЗАТЕЛЬНО) */
+        * {
+            -webkit-tap-highlight-color: rgba(0,0,0,0) !important;
+            -webkit-tap-highlight-color: transparent !important;
+            outline: none !important;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        body { 
+            background: #0e1621; 
+            color: white; 
+            text-align: center; 
+            font-family: sans-serif; 
+            margin: 0; padding: 0; 
+            overflow: hidden; 
+            display: flex; flex-direction: column; 
+            height: 100vh; justify-content: space-between; 
+        }
+
+        #score-container { margin-top: 30px; }
+        #score { font-size: 60px; font-weight: bold; color: #64b5f6; }
+        
         .game-area { flex-grow: 1; display: flex; align-items: center; justify-content: center; }
-        #tapZone { width: 220px; height: 220px; border-radius: 50%; border: 6px solid #64b5f6; background: url('https://raw.githubusercontent.com/Marko2512/Wolf-cliker/main/1774235761232.png') center/cover; cursor: pointer; touch-action: manipulation; transition: transform 0.1s; }
-        #tapZone:active { transform: scale(0.95); }
+        
+        /* Исправили клик-зону — теперь только круг с вовком */
+        #tapZone {
+            width: 230px; height: 230px; 
+            border-radius: 50%; /* Строго круглый клик */
+            border: 6px solid #64b5f6; 
+            background: url('https://raw.githubusercontent.com/Marko2512/Wolf-cliker/main/1774235761232.png') center/cover; 
+            box-shadow: 0 0 20px rgba(100, 181, 246, 0.4);
+            cursor: pointer;
+            touch-action: manipulation;
+            transition: transform 0.08s;
+            overflow: hidden;
+        }
+        
+        #tapZone:active { transform: scale(0.96); } /* Эффект нажатия */
+
         .bottom-menu { width: 100%; background: #17212b; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #2b3b4d; padding-bottom: 30px; }
-        .menu-item { background: none; border: none; color: #8ab4f8; font-size: 11px; font-weight: bold; display: flex; flex-direction: column; align-items: center; cursor: pointer; width: 33%; }
-        .menu-item span { font-size: 20px; margin-bottom: 5px; }
-        #energy-bar { width: 85%; background: #222; height: 10px; border-radius: 10px; margin: 5px auto; border: 1px solid #444; overflow: hidden; }
-        #fill { background: #64b5f6; height: 100%; width: 100%; transition: width 0.2s; }
+        .menu-item { background: none; border: none; color: #8ab4f8; font-size: 11px; font-weight: bold; display: flex; flex-direction: column; align-items: center; cursor: pointer; width: 25%; }
+        .menu-item span { font-size: 22px; margin-bottom: 5px; }
+
+        #energy-container { width: 85%; margin: 5px auto; margin-bottom: 10px; }
+        #energy-bar { width: 100%; background: #222; height: 12px; border-radius: 10px; border: 1px solid #444; overflow: hidden; }
+        #fill { background: #64b5f6; height: 100%; width: 100%; transition: width 0.2s linear; }
     </style>
 </head>
 <body>
-    <div id="score">0</div>
+    <div id="score-container">
+        <div id="score">0</div>
+        <div style="color: #888; font-size: 14px;">Монет</div>
+    </div>
+    
     <div class="game-area"><div id="tapZone"></div></div>
-    <div style="margin-bottom:10px;">⚡ <span id="en-num">0</span> / 2500</div>
-    <div id="energy-bar"><div id="fill"></div></div>
+    
+    <div id="energy-container">
+        <div style="margin-bottom:5px; font-size: 14px;">⚡ Энергия: <span id="en-num">0</span> / 2500</div>
+        <div id="energy-bar"><div id="fill"></div></div>
+    </div>
+
     <div class="bottom-menu">
         <button class="menu-item" onclick="getBonus()"><span>🎁</span> БОНУС</button>
-        <button class="menu-item" onclick="saveData()"><span>💾</span> СЕЙВ</button>
+        <button class="menu-item" onclick="showRefs()"><span>🤝</span> РЕФЫ</button>
         <button class="menu-item" onclick="showTop()"><span>🏆</span> ТОП</button>
+        <button class="menu-item" onclick="saveData()"><span>💾</span> СЕЙВ</button>
     </div>
+
     <script>
         const tg = window.Telegram.WebApp;
-        const urlParams = new URLSearchParams(window.location.search);
+        const p = new URLSearchParams(window.location.search);
         
-        let bal = parseInt(urlParams.get('bal')) || 0;
-        let en = parseInt(urlParams.get('en')) || 2500;
-        let topData = JSON.parse(decodeURIComponent(urlParams.get('top') || "[]"));
+        // Получаем данные из ссылки (uid, bal, en, top, refs)
+        let uid = p.get('uid');
+        let bal = parseInt(p.get('bal')) || 0;
+        let en = parseInt(p.get('en')) || 2500;
+        let topData = JSON.parse(decodeURIComponent(p.get('top') || "[]"));
+        let refs = parseInt(p.get('refs')) || 0;
 
-        function updateUI() {
+        function renderUI() {
             document.getElementById('score').innerText = bal;
             document.getElementById('en-num').innerText = en;
             document.getElementById('fill').style.width = (en/2500*100)+'%';
         }
 
-        // Клик по волку
+        // ОБРАБОТКА ТАПА (Ловит клик ТОЛЬКО по кругу)
         document.getElementById('tapZone').onclick = () => {
             if(en > 0) {
-                bal++; en--; updateUI();
+                bal++;
+                en--;
+                renderUI();
                 tg.HapticFeedback.impactOccurred('light');
             }
         };
 
-        // Таймер энергии (+1 в сек)
+        // ТАЙМЕР ЭНЕРГИИ (+2 в сек)
         setInterval(() => {
-            if(en < 2500) { en++; updateUI(); }
+            if(en < 2500) {
+                en += 2;
+                if(en > 2500) en = 2500;
+                renderUI();
+            }
         }, 1000);
 
         function getBonus() {
-            const last = localStorage.getItem('last_b');
+            const last = localStorage.getItem('last_wolf_b');
             if(!last || Date.now() - last > 86400000) {
                 bal += 500;
-                localStorage.setItem('last_b', Date.now());
-                updateUI();
-                alert('🎁 Бонус +500 монет получен!');
-            } else {
-                alert('⏳ Приходи завтра!');
-            }
+                localStorage.setItem('last_wolf_b', Date.now());
+                renderUI();
+                alert('🎁 Бонус +500 монет получен! Жди 24 часа.');
+            } else { alert('⏳ Уже брал сегодня! Приходи завтра.'); }
         }
 
         function showTop() {
             let str = topData.map((u, i) => `${i+1}. ${u[0]}: ${u[1]}`).join('\n');
             alert("🏆 ТОП ИГРОКОВ:\n\n" + (str || "Пока пусто"));
+        }
+
+        function showRefs() {
+            alert(`🤝 Твоя ссылка: https://t.f/WolfM_Bot?start=${uid}\nРефералов: ${refs}`);
         }
 
         function saveData() {
@@ -78,7 +135,7 @@
             tg.close();
         }
 
-        updateUI();
+        renderUI();
         tg.expand();
     </script>
 </body>
