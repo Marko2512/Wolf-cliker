@@ -8,11 +8,12 @@
         body { background: #0e1621; color: white; text-align: center; font-family: sans-serif; margin: 0; padding: 0; overflow: hidden; display: flex; flex-direction: column; height: 100vh; }
         #score { font-size: 45px; font-weight: bold; margin-top: 20px; color: #64b5f6; }
         .game-area { flex-grow: 1; display: flex; align-items: center; justify-content: center; padding-bottom: 120px; }
-        #wolf { width: 180px; height: 180px; border-radius: 50%; border: 5px solid #64b5f6; background: url('https://raw.githubusercontent.com/Marko2512/Wolf-cliker/main/1774235761232.png') center/cover; }
-        .bottom-nav { position: fixed; bottom: 140px; left: 0; width: 100%; display: flex; flex-direction: column; align-items: center; }
+        #wolf { width: 180px; height: 180px; border-radius: 50%; border: 5px solid #64b5f6; background: url('https://raw.githubusercontent.com/Marko2512/Wolf-cliker/main/1774235761232.png') center/cover; transition: transform 0.1s; }
+        #wolf:active { transform: scale(0.95); }
+        .bottom-nav { position: fixed; bottom: 130px; left: 0; width: 100%; display: flex; flex-direction: column; align-items: center; }
         #en-text { font-size: 16px; margin-bottom: 8px; }
         #energy-bar { width: 70%; background: #222; height: 10px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #444; overflow: hidden; }
-        #fill { background: #64b5f6; height: 100%; width: 100%; }
+        #fill { background: #64b5f6; height: 100%; width: 100%; transition: width 0.3s; }
         #save-btn { background: #26a69a; border: none; color: white; padding: 15px 0; width: 85%; border-radius: 15px; font-size: 18px; font-weight: bold; }
     </style>
 </head>
@@ -27,13 +28,35 @@
     <script>
         const tg = window.Telegram.WebApp;
         const p = new URLSearchParams(window.location.search);
-        let clicks = parseInt(p.get('bal')) || 0, energy = parseInt(p.get('en')) || 2500;
-        function up() { document.getElementById('score').innerText = clicks; document.getElementById('en-text').innerText = `⚡ ${energy} / 2500`; document.getElementById('fill').style.width = (energy/2500*100)+'%'; }
-        function tap(e) { e.preventDefault(); if(energy > 0) { clicks++; energy--; up(); } }
+        
+        // Загружаем данные из ссылки или памяти
+        let clicks = parseInt(p.get('bal')) || 0;
+        let energy = parseInt(p.get('en')) || 2500;
+
+        function updateUI() {
+            document.getElementById('score').innerText = clicks;
+            document.getElementById('en-text').innerText = `⚡ ${energy} / 2500`;
+            document.getElementById('fill').style.width = (energy / 2500 * 100) + '%';
+        }
+
         const wolf = document.getElementById('wolf');
-        wolf.addEventListener('touchstart', tap);
-        document.getElementById('save-btn').onclick = () => { tg.sendData(JSON.stringify({ clicks: clicks, energy: energy })); tg.close(); };
-        up(); tg.expand();
+        wolf.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            if (energy > 0) {
+                clicks++;
+                energy--;
+                updateUI();
+            }
+        });
+
+        document.getElementById('save-btn').onclick = () => {
+            // Отправляем данные боту
+            tg.sendData(JSON.stringify({ clicks: clicks, energy: energy }));
+            tg.close();
+        };
+
+        updateUI();
+        tg.expand();
     </script>
 </body>
 </html>
