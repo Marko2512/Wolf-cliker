@@ -1,56 +1,75 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Wolf Marko Clicker</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body { background: #0e1621; color: white; font-family: sans-serif; text-align: center; margin: 0; overflow: hidden; user-select: none; }
-        .score-container { font-size: 50px; margin: 20px 0; font-weight: bold; color: #3498db; text-shadow: 0 0 10px rgba(52, 152, 219, 0.5); }
-        .wolf-btn { 
-            width: 250px; height: 250px; border-radius: 50%; 
-            /* Новая прямая ссылка на волка */
-            background: url('https://i.postimg.cc/mD8N0fF4/wolf-icon.png?v=5') center/cover;
-            border: 6px solid #3498db; box-shadow: 0 0 30px rgba(52, 152, 219, 0.6);
-            margin: 40px auto; cursor: pointer; transition: transform 0.05s;
+        body { 
+            background: #0e1621; 
+            color: white; 
+            font-family: sans-serif; 
+            text-align: center; 
+            margin: 0; 
+            overflow: hidden; 
+            user-select: none;
             -webkit-tap-highlight-color: transparent;
         }
+        .score-container { margin-top: 30px; }
+        .score { font-size: 50px; font-weight: bold; color: #3498db; }
+        
+        .wolf-btn { 
+            width: 260px; 
+            height: 260px; 
+            border-radius: 50%; 
+            /* ИСПОЛЬЗУЕМ ТВОЙ ЗАГРУЖЕННЫЙ ФАЙЛ */
+            background: url('1774235761232.png') center/cover;
+            border: 6px solid #3498db; 
+            margin: 50px auto; 
+            cursor: pointer;
+            box-shadow: 0 0 30px rgba(52, 152, 219, 0.5); 
+            transition: transform 0.05s;
+        }
         .wolf-btn:active { transform: scale(0.92); }
-        .stats { font-size: 18px; color: #bdc3c7; margin-top: 10px; }
     </style>
 </head>
 <body>
-    <div style="margin-top:20px; font-weight: bold; letter-spacing: 2px;">WOLF MARKO CLICKER</div>
-    <div class="score-container">💰 <span id="score">0</span></div>
-    <div class="wolf-btn" id="clickBtn"></div>
-    <div class="stats">⚡ Энергия: <span id="energy">1000</span></div>
+    <div style="margin-top:20px; font-weight: bold; letter-spacing: 2px;">WOLFMANY CLICKER</div>
+    
+    <div class="score-container">
+        💰 <span id="score" class="score">0</span>
+    </div>
+
+    <div class="wolf-btn" id="btn"></div>
 
     <script>
         let tg = window.Telegram.WebApp;
+        // Загружаем монеты из памяти телефона
         let score = parseInt(localStorage.getItem('wolf_score')) || 0;
-        let energy = 1000;
+        
         tg.expand();
+        document.getElementById('score').innerText = score;
 
-        const scoreEl = document.getElementById('score');
-        const energyEl = document.getElementById('energy');
-        scoreEl.innerText = score;
-
-        document.getElementById('clickBtn').addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            if (energy > 0) {
-                score++;
-                energy--;
-                scoreEl.innerText = score;
-                energyEl.innerText = energy;
-                localStorage.setItem('wolf_score', score);
-                
-                // Синхронизация с ботом каждые 5 кликов
-                if (score % 5 === 0) {
-                    tg.sendData(JSON.stringify({clicks: score}));
-                }
+        // Функция отправки монет в твой Termux
+        function sendToBot() {
+            if (score > 0) {
+                tg.sendData(JSON.stringify({clicks: score}));
             }
+        }
+
+        // Клик по волку
+        document.getElementById('btn').addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            score++;
+            document.getElementById('score').innerText = score;
+            localStorage.setItem('wolf_score', score);
         });
+
+        // Авто-сохранение каждые 3 секунды (чтобы не было 0)
+        setInterval(sendToBot, 3000);
+
+        // Сохранение при закрытии игры
+        tg.onEvent('viewportChanged', sendToBot);
     </script>
 </body>
 </html>
