@@ -5,52 +5,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        * {
-            -webkit-tap-highlight-color: transparent !important;
-            -webkit-touch-callout: none !important;
-            -webkit-user-select: none !important;
-            user-select: none !important;
-            outline: none !important;
-        }
-        body { 
-            background: #0b1016; 
-            color: white; 
-            text-align: center; 
-            font-family: sans-serif; 
-            margin: 0; padding: 0; 
-            display: flex; flex-direction: column; 
-            height: 100vh; overflow: hidden; 
-            touch-action: manipulation;
-        }
+        * { -webkit-tap-highlight-color: transparent; -webkit-touch-callout: none; user-select: none; -webkit-user-select: none; outline: none; }
+        body { background: #0b1016; color: white; text-align: center; font-family: sans-serif; margin: 0; padding: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; touch-action: manipulation; }
         .header { font-size: 64px; font-weight: bold; color: #5da9f6; margin: 30px 0; }
         .click-container { flex: 1; display: flex; align-items: center; justify-content: center; }
-        .wolf-btn { 
-            width: 280px; height: 280px; border-radius: 50%; 
-            background: url('https://marko2512.github.io/Wolf-cliker/1774235761232.png') center/cover no-repeat; 
-            box-shadow: 0 0 45px rgba(78, 181, 241, 0.5);
-            cursor: pointer; transition: transform 0.05s ease-out; border: none;
-            -webkit-user-drag: none;
-        }
+        .wolf-btn { width: 280px; height: 280px; border-radius: 50%; background: url('https://marko2512.github.io/Wolf-cliker/1774235761232.png') center/cover no-repeat; box-shadow: 0 0 45px rgba(78, 181, 241, 0.5); cursor: pointer; transition: transform 0.05s ease-out; border: none; -webkit-user-drag: none; }
         .wolf-btn:active { transform: scale(0.94); }
         .energy-section { padding: 0 30px 100px; }
         .energy-info { font-size: 20px; font-weight: bold; margin-bottom: 12px; color: #f1c40f; }
         .progress-bg { width: 100%; height: 12px; background: #1c2a38; border-radius: 15px; }
         .progress-fill { width: 100%; height: 100%; background: #4eb5f1; border-radius: 15px; transition: width 0.1s; }
-        .nav-menu { 
-            position: fixed; bottom: 0; width: 100%; height: 85px; 
-            background: #131d27; display: flex; justify-content: space-around; align-items: center; 
-            border-top: 1px solid #23313f;
-        }
-        .nav-item { color: #5da9f6; font-size: 12px; font-weight: bold; cursor: pointer; padding: 10px; }
-        /* Стиль для заблокированной кнопки бонуса */
-        .disabled { opacity: 0.5; color: #7f8c8d; }
+        .nav-menu { position: fixed; bottom: 0; width: 100%; height: 85px; background: #131d27; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #23313f; }
+        .nav-item { color: #5da9f6; font-size: 12px; font-weight: bold; cursor: pointer; padding: 10px; transition: 0.3s; }
+        /* Состояние когда бонус нельзя взять */
+        .bonus-locked { opacity: 0.3; filter: grayscale(1); pointer-events: none; }
     </style>
 </head>
 <body oncontextmenu="return false;">
     <div class="header" id="balance">0</div>
-    <div class="click-container">
-        <div class="wolf-btn" id="btn" onclick="tap()" draggable="false"></div>
-    </div>
+    <div class="click-container"><div class="wolf-btn" id="btn" onclick="tap()" draggable="false"></div></div>
     <div class="energy-section">
         <div class="energy-info">⚡ <span id="en-val">2500</span></div>
         <div class="progress-bg"><div class="progress-fill" id="en-bar"></div></div>
@@ -67,48 +40,42 @@
         let en = parseInt(params.get('en')) || 2500;
         const maxEn = 2500;
 
-        function update() {
+        function updateUI() {
             document.getElementById('balance').innerText = bal;
             document.getElementById('en-val').innerText = en;
             document.getElementById('en-bar').style.width = (en / maxEn * 100) + '%';
-            checkBonusStatus();
-        }
-
-        function tap() {
-            if (en > 0) {
-                bal++; en--; update();
-                if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
-            }
-        }
-
-        // Проверка: можно ли взять бонус
-        function checkBonusStatus() {
-            const lastBonus = localStorage.getItem('lastBonusTime');
+            
+            // Проверка времени бонуса
+            const lastBonus = localStorage.getItem('wolf_last_bonus');
             const now = Date.now();
             const btn = document.getElementById('bonus-btn');
             
             if (lastBonus && (now - lastBonus < 24 * 60 * 60 * 1000)) {
-                btn.classList.add('disabled');
-                const timeLeft = Math.ceil((24 * 60 * 60 * 1000 - (now - lastBonus)) / (1000 * 60 * 60));
-                btn.innerHTML = `🎁 ЖДАТЬ ${timeLeft}ч`;
+                btn.classList.add('bonus-locked');
+                const hoursLeft = Math.ceil((24 * 60 * 60 * 1000 - (now - lastBonus)) / (1000 * 60 * 60));
+                btn.innerText = `🎁 ЧЕРЕЗ ${hoursLeft}Ч`;
             } else {
-                btn.classList.remove('disabled');
-                btn.innerHTML = `🎁 БОНУС`;
+                btn.classList.remove('bonus-locked');
+                btn.innerText = `🎁 БОНУС`;
+            }
+        }
+
+        function tap() {
+            if (en > 0) {
+                bal++; en--; updateUI();
+                if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
             }
         }
 
         function getBonus() {
-            const lastBonus = localStorage.getItem('lastBonusTime');
+            const lastBonus = localStorage.getItem('wolf_last_bonus');
             const now = Date.now();
-
+            
             if (!lastBonus || (now - lastBonus >= 24 * 60 * 60 * 1000)) {
                 bal += 500;
-                localStorage.setItem('lastBonusTime', now);
-                update();
-                tg.showAlert("Вы получили ежедневный бонус +500 монет!");
-                if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
-            } else {
-                tg.showAlert("Бонус можно брать только раз в 24 часа!");
+                localStorage.setItem('wolf_last_bonus', now);
+                updateUI();
+                tg.showAlert("Бонус +500 получен! Приходи завтра.");
             }
         }
 
@@ -116,11 +83,10 @@
             tg.sendData(JSON.stringify({bal: bal, en: en}));
         }
 
-        setInterval(() => { if (en < maxEn) { en++; update(); } }, 1000);
+        setInterval(() => { if (en < maxEn) { en++; updateUI(); } }, 1000);
         
-        update();
+        updateUI();
         tg.expand();
-        tg.ready();
     </script>
 </body>
 </html>
