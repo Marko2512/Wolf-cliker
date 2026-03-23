@@ -5,29 +5,94 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body { background: #0e1621; color: white; text-align: center; font-family: sans-serif; margin: 0; overflow: hidden; display: flex; flex-direction: column; height: 100vh; }
-        #score { font-size: 50px; font-weight: bold; margin-top: 20px; color: #fff; text-shadow: 0 0 15px #64b5f6; }
-        .game-area { flex-grow: 1; display: flex; align-items: center; justify-content: center; }
-        #wolf { width: 260px; height: 260px; border-radius: 50%; border: 6px solid #64b5f6; background: url('https://raw.githubusercontent.com/Marko2512/Wolf-cliker/main/1774235761232.png') center/cover; transition: transform 0.05s; box-shadow: 0 0 30px rgba(100, 181, 246, 0.4); }
-        #energy-container { width: 85%; background: #222; height: 24px; border-radius: 12px; margin: 10px auto; overflow: hidden; border: 1px solid #444; }
-        #energy-bar { background: linear-gradient(90deg, #64b5f6, #2196f3); height: 100%; width: 100%; transition: width 0.2s; }
-        #energy-text { margin-bottom: 5px; font-size: 18px; font-weight: bold; }
-        #save-btn { background: #26a69a; border: none; color: white; padding: 18px; width: 90%; border-radius: 20px; font-size: 20px; margin-bottom: 25px; align-self: center; font-weight: bold; }
-    </style>
+        body { 
+            background: #0e1621; 
+            color: white; 
+            text-align: center; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            margin: 0; 
+            overflow: hidden; 
+            display: flex; 
+            flex-direction: column; 
+            height: 100vh; 
+        }
+        #score { 
+            font-size: 50px; 
+            font-weight: bold; 
+            margin-top: 30px; 
+            text-shadow: 0 0 20px #64b5f6; 
+        }
+        .game-area { 
+            flex-grow: 1; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+        }
+        #wolf { 
+            width: 260px; 
+            height: 260px; 
+            border-radius: 50%; 
+            border: 6px solid #64b5f6; 
+            background: url('https://raw.githubusercontent.com/Marko2512/Wolf-cliker/main/1774235761232.png') center/cover; 
+            transition: transform 0.05s; 
+            box-shadow: 0 0 40px rgba(100, 181, 246, 0.3);
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+        }
+        #energy-container { 
+            width: 85%; 
+            background: #222; 
+            height: 25px; 
+            border-radius: 15px; 
+            margin: 10px auto; 
+            border: 2px solid #333; 
+            overflow: hidden;
+        }
+        #energy-bar { 
+            background: linear-gradient(90deg, #64b5f6, #2196f3); 
+            height: 100%; 
+            width: 100%; 
+            transition: width 0.2s ease-out; 
+        }
+        #energy-text { 
+            font-size: 18px; 
+            font-weight: bold; 
+            margin-bottom: 5px; 
+        }
+        #save-btn { 
+            background: #26a69a; 
+            border: none; 
+            color: white; 
+            padding: 18px; 
+            width: 90%; 
+            border-radius: 20px; 
+            font-size: 20px; 
+            margin-bottom: 30px; 
+            font-weight: bold; 
+            align-self: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+    </script>
 </head>
 <body>
     <div id="score">0</div>
-    <div class="game-area"><div id="wolf"></div></div>
+    
+    <div class="game-area">
+        <div id="wolf"></div>
+    </div>
     
     <div id="energy-text">⚡ 2500 / 2500</div>
-    <div id="energy-container"><div id="energy-bar"></div></div>
+    <div id="energy-container">
+        <div id="energy-bar"></div>
+    </div>
     
     <button id="save-btn">СОХРАНИТЬ И ВЫЙТИ</button>
 
     <script>
         const tg = window.Telegram.WebApp;
-        let params = new URLSearchParams(window.location.search);
+        const params = new URLSearchParams(window.location.search);
         
+        // Получаем данные от бота
         let clicks = parseInt(params.get('bal')) || 0;
         let energy = parseInt(params.get('en')) || 2500;
         const maxEnergy = 2500;
@@ -51,28 +116,43 @@
             }
         }, 2000);
 
-        function tap(e) {
-            if(e) e.preventDefault();
+        function handleTap(e) {
+            if (e) e.preventDefault();
             if (energy > 0) {
                 clicks++;
                 energy--;
                 updateUI();
+                
+                // Эффект нажатия
                 wolf.style.transform = "scale(0.92)";
                 setTimeout(() => wolf.style.transform = "scale(1)", 50);
-                if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+                
+                // Вибрация
+                if (tg.HapticFeedback) {
+                    tg.HapticFeedback.impactOccurred('medium');
+                }
+            } else {
+                if (tg.HapticFeedback) {
+                    tg.HapticFeedback.notificationOccurred('error');
+                }
             }
         }
 
-        wolf.addEventListener('touchstart', tap);
-        wolf.addEventListener('mousedown', tap);
+        // Поддержка и ПК, и Телефона
+        wolf.addEventListener('touchstart', handleTap);
+        wolf.addEventListener('mousedown', handleTap);
 
+        // Кнопка сохранения данных в бота
         document.getElementById('save-btn').onclick = () => {
-            tg.sendData(JSON.stringify({ clicks: clicks, energy: energy }));
+            const dataToSend = JSON.stringify({ clicks: clicks, energy: energy });
+            tg.sendData(dataToSend);
             setTimeout(() => tg.close(), 100);
         };
 
+        // Инициализация
         updateUI();
         tg.expand();
     </script>
 </body>
-</html>
+            </html>
+        
