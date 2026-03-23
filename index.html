@@ -6,69 +6,40 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body { 
-            background: #0e1621; 
-            color: white; 
-            font-family: sans-serif; 
-            text-align: center; 
-            margin: 0; 
-            overflow: hidden; 
-            user-select: none;
+            background: #0e1621; color: white; font-family: sans-serif; 
+            text-align: center; margin: 0; overflow: hidden; user-select: none;
             -webkit-tap-highlight-color: transparent;
         }
         .score-container { margin-top: 30px; }
         .score { font-size: 50px; font-weight: bold; color: #3498db; }
-        
         .wolf-btn { 
-            width: 260px; 
-            height: 260px; 
-            border-radius: 50%; 
-            /* ИСПОЛЬЗУЕМ ТВОЙ ЗАГРУЖЕННЫЙ ФАЙЛ */
+            width: 260px; height: 260px; border-radius: 50%; 
             background: url('1774235761232.png') center/cover;
-            border: 6px solid #3498db; 
-            margin: 50px auto; 
-            cursor: pointer;
-            box-shadow: 0 0 30px rgba(52, 152, 219, 0.5); 
-            transition: transform 0.05s;
+            border: 6px solid #3498db; margin: 50px auto; cursor: pointer;
+            box-shadow: 0 0 30px rgba(52, 152, 219, 0.5); transition: transform 0.05s;
         }
         .wolf-btn:active { transform: scale(0.92); }
     </style>
 </head>
 <body>
-    <div style="margin-top:20px; font-weight: bold; letter-spacing: 2px;">WOLFMANY CLICKER</div>
-    
-    <div class="score-container">
-        💰 <span id="score" class="score">0</span>
-    </div>
-
+    <div style="margin-top:20px; font-weight: bold;">WOLFMANY CLICKER</div>
+    <div class="score-container">💰 <span id="score" class="score">0</span></div>
     <div class="wolf-btn" id="btn"></div>
-
     <script>
         let tg = window.Telegram.WebApp;
-        // Загружаем монеты из памяти телефона
         let score = parseInt(localStorage.getItem('wolf_score')) || 0;
-        
         tg.expand();
         document.getElementById('score').innerText = score;
-
-        // Функция отправки монет в твой Termux
         function sendToBot() {
-            if (score > 0) {
-                tg.sendData(JSON.stringify({clicks: score}));
-            }
+            if (score > 0) tg.sendData(JSON.stringify({clicks: score}));
         }
-
-        // Клик по волку
         document.getElementById('btn').addEventListener('touchstart', (e) => {
             e.preventDefault();
             score++;
             document.getElementById('score').innerText = score;
             localStorage.setItem('wolf_score', score);
         });
-
-        // Авто-сохранение каждые 3 секунды (чтобы не было 0)
         setInterval(sendToBot, 3000);
-
-        // Сохранение при закрытии игры
         tg.onEvent('viewportChanged', sendToBot);
     </script>
 </body>
