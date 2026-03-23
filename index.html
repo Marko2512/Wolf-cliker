@@ -5,27 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body { background: #0e1621; color: white; font-family: sans-serif; text-align: center; margin: 0; overflow: hidden; user-select: none; }
-        .score-container { margin-top: 40px; font-size: 55px; font-weight: bold; color: #3498db; }
+        body { background: #0e1621; color: white; font-family: sans-serif; text-align: center; margin: 0; overflow: hidden; }
+        .score { font-size: 50px; font-weight: bold; color: #3498db; margin-top: 30px; }
         .wolf-btn { 
-            width: 250px; height: 250px; border-radius: 50%; 
+            width: 240px; height: 240px; border-radius: 50%; 
             background: url('1774235761232.png') center/cover;
-            border: 6px solid #3498db; margin: 40px auto; cursor: pointer;
-            box-shadow: 0 0 25px rgba(52, 152, 219, 0.6); transition: transform 0.05s;
+            border: 6px solid #3498db; margin: 30px auto; 
         }
-        .wolf-btn:active { transform: scale(0.93); }
-        .save-btn {
-            background: #27ae60; color: white; border: none; padding: 18px 40px;
-            font-size: 20px; border-radius: 12px; cursor: pointer; font-weight: bold;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        #save-btn {
+            background: #27ae60; color: white; border: none; padding: 20px;
+            width: 80%; font-size: 20px; border-radius: 15px; font-weight: bold;
         }
     </style>
 </head>
 <body>
-    <div class="score-container">💰 <span id="score">0</span></div>
+    <div class="score">💰 <span id="score">0</span></div>
     <div class="wolf-btn" id="btn"></div>
-    
-    <button class="save-btn" onclick="finishGame()">СОХРАНИТЬ И ВЫЙТИ</button>
+    <button id="save-btn" onclick="hardClose()">СОХРАНИТЬ И ВЫЙТИ</button>
 
     <script>
         let tg = window.Telegram.WebApp;
@@ -33,7 +29,6 @@
         tg.expand();
         document.getElementById('score').innerText = score;
 
-        // Клик по волку
         document.getElementById('btn').addEventListener('touchstart', (e) => {
             e.preventDefault();
             score++;
@@ -41,15 +36,18 @@
             localStorage.setItem('wolf_score', score);
         });
 
-        // Функция сохранения и ЖЕСТКОГО выхода
-        function finishGame() {
-            if (score > 0) {
-                tg.sendData(JSON.stringify({clicks: score}));
-            }
-            // Закрываем приложение через небольшую паузу
+        function hardClose() {
+            const btn = document.getElementById('save-btn');
+            btn.innerText = "ОТПРАВКА...";
+            btn.style.background = "#f39c12";
+
+            // Отправляем данные
+            tg.sendData(JSON.stringify({clicks: score}));
+            
+            // Ждем чуть-чуть и закрываем принудительно
             setTimeout(() => {
                 tg.close();
-            }, 150);
+            }, 500);
         }
     </script>
 </body>
