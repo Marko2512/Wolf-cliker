@@ -8,16 +8,14 @@
         body { background: #0e1621; color: white; text-align: center; margin: 0; padding: 0; font-family: sans-serif; overflow: hidden; height: 100vh; display: flex; flex-direction: column; }
         #score { font-size: 60px; margin-top: 30px; color: #64b5f6; font-weight: bold; }
         .game { flex-grow: 1; display: flex; align-items: center; justify-content: center; }
-        /* Картинка волка */
-        #wolf-btn { width: 250px; height: 250px; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; }
-        /* Кнопка сохранить */
-        #save-btn { background: #4db6ac; color: white; border: none; padding: 15px; width: 80%; border-radius: 12px; font-size: 18px; margin-bottom: 30px; align-self: center; font-weight: bold; cursor: pointer; }
+        #wolf-btn { width: 280px; height: 280px; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; transition: transform 0.05s; }
+        #save-btn { background: #4db6ac; color: white; border: none; padding: 18px; width: 85%; border-radius: 15px; font-size: 20px; margin-bottom: 30px; align-self: center; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
     <div id="score">0</div>
     <div class="game">
-        <img id="wolf-btn" src="https://raw.githubusercontent.com/marko2512/Wolf-cliker/main/wolf_image.png" onerror="this.src='https://img.icons8.com/color/250/wolf.png'">
+        <img id="wolf-btn" src="https://raw.githubusercontent.com/Marko2512/Wolf-cliker/main/1774235761232.png" onerror="this.src='https://img.icons8.com/color/250/wolf.png'">
     </div>
     <button id="save-btn">СОХРАНИТЬ МОНЕТЫ</button>
 
@@ -29,16 +27,16 @@
         let clicks = parseInt(new URLSearchParams(window.location.search).get('bal')) || 0;
         scoreDisplay.innerText = clicks;
 
-        function doClick() {
+        function doTap(e) {
+            if(e) e.preventDefault();
             clicks++;
             scoreDisplay.innerText = clicks;
             wolf.style.transform = "scale(0.95)";
             setTimeout(() => { wolf.style.transform = "scale(1)"; }, 50);
         }
 
-        // Слушаем и тапы и клики
-        wolf.addEventListener('touchstart', (e) => { e.preventDefault(); doClick(); });
-        wolf.addEventListener('click', () => { doClick(); });
+        wolf.addEventListener('touchstart', doTap);
+        wolf.addEventListener('click', doTap);
 
         document.getElementById('save-btn').onclick = () => {
             tg.sendData(JSON.stringify({ clicks: clicks }));
