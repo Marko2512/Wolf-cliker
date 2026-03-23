@@ -25,22 +25,34 @@
     <div style="margin-top:20px; font-weight: bold;">WOLFMANY CLICKER</div>
     <div class="score-container">💰 <span id="score" class="score">0</span></div>
     <div class="wolf-btn" id="btn"></div>
+
     <script>
         let tg = window.Telegram.WebApp;
         let score = parseInt(localStorage.getItem('wolf_score')) || 0;
+        
         tg.expand();
         document.getElementById('score').innerText = score;
-        function sendToBot() {
-            if (score > 0) tg.sendData(JSON.stringify({clicks: score}));
+
+        // ГЛАВНАЯ ФУНКЦИЯ: Отправляет монеты в Termux
+        function syncData() {
+            if (score > 0) {
+                tg.sendData(JSON.stringify({clicks: score}));
+            }
         }
+
+        // Клик по волку
         document.getElementById('btn').addEventListener('touchstart', (e) => {
             e.preventDefault();
             score++;
             document.getElementById('score').innerText = score;
             localStorage.setItem('wolf_score', score);
         });
-        setInterval(sendToBot, 3000);
-        tg.onEvent('viewportChanged', sendToBot);
+
+        // Отправляем данные боту каждые 5 секунд
+        setInterval(syncData, 5000);
+
+        // Также отправляем данные при любом изменении окна (например, при закрытии)
+        tg.onEvent('viewportChanged', syncData);
     </script>
 </body>
 </html>
