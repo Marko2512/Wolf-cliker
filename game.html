@@ -2,87 +2,48 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body { background: #0e1621; color: white; text-align: center; font-family: sans-serif; margin: 0; padding: 0; overflow: hidden; display: flex; flex-direction: column; height: 100vh; }
         #score { font-size: 60px; font-weight: bold; margin-top: 30px; color: #64b5f6; }
         .game-area { flex-grow: 1; display: flex; align-items: center; justify-content: center; }
-        #wolf { width: 220px; height: 220px; border-radius: 50%; border: 6px solid #64b5f6; background: url('https://raw.githubusercontent.com/Marko2512/Wolf-cliker/main/1774235761232.png') center/cover; transition: transform 0.1s; cursor: pointer; }
-        #wolf:active { transform: scale(0.92); }
+        #wolf { width: 220px; height: 220px; border-radius: 50%; border: 6px solid #64b5f6; background: url('https://raw.githubusercontent.com/Marko2512/Wolf-cliker/main/1774235761232.png') center/cover; }
         .bottom-menu { width: 100%; background: #17212b; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #2b3b4d; padding-bottom: 30px; }
-        .menu-item { background: none; border: none; color: #8ab4f8; font-size: 11px; font-weight: bold; display: flex; flex-direction: column; align-items: center; cursor: pointer; width: 25%; }
-        .menu-item:disabled { opacity: 0.3; }
-        #energy-bar { width: 85%; background: #222; height: 10px; border-radius: 10px; margin: 5px auto; border: 1px solid #444; overflow: hidden; }
-        #fill { background: #64b5f6; height: 100%; width: 100%; transition: width 0.2s; }
+        .menu-item { background: none; border: none; color: #8ab4f8; font-size: 11px; font-weight: bold; display: flex; flex-direction: column; align-items: center; }
+        #energy-bar { width: 85%; background: #222; height: 10px; border-radius: 10px; margin: 5px auto; overflow: hidden; }
+        #fill { background: #64b5f6; height: 100%; width: 100%; }
     </style>
 </head>
 <body>
     <div id="score">0</div>
     <div class="game-area"><div id="wolf"></div></div>
-    <div style="margin-bottom:10px;">⚡ <span id="en-num">2500</span> / 2500</div>
+    <div>⚡ <span id="en-num">2500</span> / 2500</div>
     <div id="energy-bar"><div id="fill"></div></div>
-
     <div class="bottom-menu">
-        <button class="menu-item" id="bonusBtn" onclick="takeBonus()"><span>🎁</span> <div id="bonusText">БОНУС</div></button>
-        <button class="menu-item" onclick="saveData()"><span>💾</span> СЕЙВ</button>
-        <button class="menu-item" onclick="showRefs()"><span>🤝</span> РЕФЫ</button>
-        <button class="menu-item" onclick="showTop()"><span>🏆</span> ТОП</button>
+        <button class="menu-item" onclick="bonus()">🎁 БОНУС</button>
+        <button class="menu-item" onclick="save()">💾 СЕЙВ</button>
+        <button class="menu-item" onclick="showTop()">🏆 ТОП</button>
     </div>
-
     <script>
         const tg = window.Telegram.WebApp;
         const p = new URLSearchParams(window.location.search);
-        let clicks = parseInt(p.get('bal')) || 0;
-        let energy = parseInt(p.get('en')) || 2500;
-        const uid = p.get('uid');
-        const topData = JSON.parse(p.get('top') || "[]");
+        let bal = parseInt(p.get('bal')) || 0, en = parseInt(p.get('en')) || 2500;
+        let top = JSON.parse(decodeURIComponent(p.get('top') || "[]"));
 
-        function updateUI() {
-            document.getElementById('score').innerText = clicks;
-            document.getElementById('en-num').innerText = energy;
-            document.getElementById('fill').style.width = (energy/2500*100)+'%';
-            checkBonus();
+        function up() {
+            document.getElementById('score').innerText = bal;
+            document.getElementById('en-num').innerText = en;
+            document.getElementById('fill').style.width = (en/2500*100)+'%';
         }
-
-        function takeBonus() {
-            localStorage.setItem('wolf_bonus_time', Date.now());
-            clicks += 500;
-            tg.HapticFeedback.notificationOccurred('success');
-            alert('Подарок 500 WOLF получен!');
-            updateUI();
+        function bonus() {
+            if(!localStorage.getItem('b')) { bal+=500; localStorage.setItem('b', Date.now()); up(); alert('+500!'); }
+            else { alert('Уже брал!'); }
         }
-
-        function checkBonus() {
-            const last = localStorage.getItem('wolf_bonus_time');
-            if (last && Date.now() - parseInt(last) < 86400000) {
-                document.getElementById('bonusBtn').disabled = true;
-                document.getElementById('bonusText').innerText = "24ч";
-            }
-        }
-
-        function showRefs() {
-            const link = `https://t.me/Wolfmanybot?start=${uid}`;
-            tg.showPopup({ title: 'Рефералы', message: `Твоя ссылка:\n${link}`, buttons: [{type: 'close', text: 'ОК'}] });
-        }
-
-        function showTop() {
-            let list = topData.map((u, i) => `${i+1}. ${u[0]}: ${u[1]}`).join('\n');
-            tg.showPopup({ title: 'ТОП ИГРОКОВ', message: list || "Пока никого нет", buttons: [{type: 'close', text: 'Закрыть'}] });
-        }
-
-        document.getElementById('wolf').addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            if(energy > 0) { clicks++; energy--; updateUI(); }
-        });
-
-        function saveData() {
-            tg.sendData(JSON.stringify({ clicks: clicks, energy: energy }));
-            tg.close();
-        }
-
-        updateUI();
-        tg.expand();
+        function showTop() { alert("ТОП:\n"+top.map(u => u[0]+": "+u[1]).join("\n")); }
+        document.getElementById('wolf').onclick = () => { if(en>0) { bal++; en--; up(); } };
+        function save() { tg.sendData(JSON.stringify({bal, en})); tg.close(); }
+        up(); tg.expand();
     </script>
 </body>
 </html>
