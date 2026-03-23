@@ -5,44 +5,144 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body { background: #0b1016; color: white; text-align: center; font-family: sans-serif; margin: 0; }
-        #balance { font-size: 60px; font-weight: bold; color: #5da9f6; margin-top: 30px; }
-        .energy { color: #f1c40f; font-size: 18px; margin-bottom: 20px; }
-        .wolf-btn { width: 250px; height: 250px; border-radius: 50%; background: url('https://marko2512.github.io/Wolf-cliker/1774235761232.png') center/cover; box-shadow: 0 0 30px #4eb5f1; cursor: pointer; border: none; outline: none; transition: 0.1s; }
-        .wolf-btn:active { transform: scale(0.95); }
-        .save-btn { margin-top: 30px; padding: 15px 30px; background: #27ae60; border: none; border-radius: 10px; color: white; font-weight: bold; cursor: pointer; }
+        * { -webkit-tap-highlight-color: transparent; outline: none; box-sizing: border-box; }
+        body { background: #0b1016; color: white; text-align: center; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+        
+        /* Шапка с балансом */
+        .header { padding: 20px; }
+        #balance { font-size: 60px; font-weight: bold; color: #5da9f6; text-shadow: 0 0 20px rgba(93, 169, 246, 0.5); }
+        .energy { color: #f1c40f; font-size: 18px; margin-top: 5px; }
+
+        /* Центральная кнопка */
+        .click-zone { flex: 1; display: flex; align-items: center; justify-content: center; }
+        .wolf-btn { width: 260px; height: 260px; border-radius: 50%; background: url('https://marko2512.github.io/Wolf-cliker/1774235761232.png') center/cover; box-shadow: 0 0 40px #4eb5f1; cursor: pointer; transition: transform 0.1s; border: 6px solid #131d27; }
+        .wolf-btn:active { transform: scale(0.92); }
+
+        /* Кнопка сохранения */
+        .save-container { padding-bottom: 100px; }
+        .save-btn { background: #27ae60; color: white; border: none; padding: 12px 25px; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 16px; }
+
+        /* Нижнее меню (5 пунктов) */
+        .nav { position: fixed; bottom: 0; width: 100%; height: 80px; background: #131d27; display: flex; justify-content: space-around; align-items: center; border-top: 2px solid #23313f; padding-bottom: 5px; }
+        .nav-item { color: #5da9f6; font-size: 10px; font-weight: bold; cursor: pointer; display: flex; flex-direction: column; align-items: center; transition: 0.2s; }
+        .nav-item:active { transform: scale(0.9); opacity: 0.7; }
+        .nav-icon { font-size: 24px; margin-bottom: 4px; }
+        .active { color: white; }
     </style>
 </head>
 <body>
-    <div id="balance">0</div>
-    <div class="energy">⚡ <span id="en-val">2500</span></div>
-    <button class="wolf-btn" onclick="tap()"></button>
-    <br>
-    <button class="save-btn" onclick="saveData()">💾 СОХРАНИТЬ И ВЫЙТИ</button>
+
+    <div class="header">
+        <div id="balance">0</div>
+        <div class="energy">⚡ <span id="en-val">2500</span></div>
+    </div>
+
+    <div class="click-zone">
+        <div class="wolf-btn" onclick="tap()"></div>
+    </div>
+
+    <div class="save-container">
+        <button class="save-btn" onclick="saveAndExit()">💾 СОХРАНИТЬ И ВЫЙТИ</button>
+    </div>
+
+    <div class="nav">
+        <div class="nav-item" onclick="showSection('shop')">
+            <span class="nav-icon">🛒</span>
+            <span>МАГАЗИН</span>
+        </div>
+        <div class="nav-item" onclick="getBonus()">
+            <span class="nav-icon">🎁</span>
+            <span>БОНУС</span>
+        </div>
+        <div class="nav-item" onclick="copyRef()">
+            <span class="nav-icon">👥</span>
+            <span>РЕФЫ</span>
+        </div>
+        <div class="nav-item" onclick="showTop()">
+            <span class="nav-icon">🏆</span>
+            <span>ТОП</span>
+        </div>
+        <div class="nav-item" onclick="showSection('profile')">
+            <span class="nav-icon">👤</span>
+            <span>ПРОФИЛЬ</span>
+        </div>
+    </div>
 
     <script>
         const tg = window.Telegram.WebApp;
         const params = new URLSearchParams(window.location.search);
+        
         let bal = parseInt(params.get('bal')) || 0;
         let en = parseInt(params.get('en')) || 2500;
+        const uid = params.get('uid');
 
         function updateUI() {
-            document.getElementById('balance').innerText = bal;
+            document.getElementById('balance').innerText = bal.toLocaleString();
             document.getElementById('en-val').innerText = en;
         }
 
         function tap() {
             if (en > 0) { 
-                bal++; en--; updateUI(); 
+                bal++; 
+                en--; 
+                updateUI(); 
                 tg.HapticFeedback.impactOccurred('light'); 
+            } else {
+                tg.showAlert("Энергия на нуле! Жди восстановления.");
             }
         }
 
-        function saveData() {
-            // ОТПРАВКА ДАННЫХ БОТУ
-            tg.sendData(JSON.stringify({bal: bal, en: en}));
+        // 1. СОХРАНЕНИЕ
+        function saveAndExit() {
+            const data = JSON.stringify({bal: bal, en: en});
+            tg.sendData(data); // Отправка в Termux
             tg.close();
         }
+
+        // 2. РЕФЕРАЛЫ
+        function copyRef() {
+            const link = "https://t.me/WolfMany_bot?start=" + uid;
+            const el = document.createElement('textarea');
+            el.value = link;
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+            tg.showAlert("Твоя ссылка скопирована! Отправь другу:\n" + link);
+        }
+
+        // 3. ПОДАРКИ (Раз в 24 часа)
+        function getBonus() {
+            const now = Date.now();
+            const last = localStorage.getItem('last_bonus_' + uid);
+            if (!last || (now - last > 86400000)) {
+                bal += 1000;
+                localStorage.setItem('last_bonus_' + uid, now);
+                updateUI();
+                tg.showAlert("🎁 Твой ежедневный бонус +1,000 монет начислен!");
+            } else {
+                const hoursLeft = Math.ceil((86400000 - (now - last)) / 3600000);
+                tg.showAlert("Подарок уже забран! Приходи через " + hoursLeft + " ч.");
+            }
+        }
+
+        // 4. ТОП
+        function showTop() {
+            tg.showAlert("🏆 ТОП ИГРОКОВ:\n1. Wolf Marko: 1,500,000\n2. Wolf25: 850,000\n3. Ты: " + bal);
+        }
+
+        // 5. ДОП СЕКЦИИ
+        function showSection(name) {
+            tg.showAlert("Раздел '" + name.toUpperCase() + "' в разработке! Скоро добавим скины и прокачку.");
+        }
+
+        // Регенерация энергии
+        setInterval(() => {
+            if (en < 2500) {
+                en++;
+                updateUI();
+            }
+        }, 2000);
 
         updateUI();
         tg.expand();
