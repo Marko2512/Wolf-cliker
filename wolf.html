@@ -5,65 +5,61 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body { background: #0e1621; color: white; text-align: center; font-family: sans-serif; margin: 0; padding: 0; overflow: hidden; display: flex; flex-direction: column; height: 100vh; }
-        #score { font-size: 45px; font-weight: bold; margin-top: 10px; color: #64b5f6; }
-        .game-area { flex-grow: 1; display: flex; align-items: center; justify-content: center; }
-        #wolf { width: 200px; height: 200px; border-radius: 50%; border: 5px solid #64b5f6; background: url('https://raw.githubusercontent.com/Marko2512/Wolf-cliker/main/1774235761232.png') center/cover; transition: transform 0.1s; }
+        body { background: #0e1621; color: white; text-align: center; font-family: sans-serif; margin: 0; padding: 0; overflow: hidden; }
+        #score { font-size: 50px; font-weight: bold; margin-top: 20px; color: #64b5f6; }
+        .game-area { height: 60vh; display: flex; align-items: center; justify-content: center; }
+        #wolf { width: 220px; height: 220px; border-radius: 50%; border: 6px solid #64b5f6; background: url('https://raw.githubusercontent.com/Marko2512/Wolf-cliker/main/1774235761232.png') center/cover; transition: transform 0.1s; }
         #wolf:active { transform: scale(0.95); }
-        .stats { display: flex; justify-content: space-around; padding: 10px; background: rgba(255,255,255,0.05); }
-        .bottom-nav { padding-bottom: 30px; background: #17212b; }
-        #energy-bar { width: 80%; background: #222; height: 12px; border-radius: 10px; margin: 10px auto; border: 1px solid #444; overflow: hidden; }
+        
+        /* ТО САМОЕ НИЖНЕЕ МЕНЮ */
+        .bottom-menu { position: fixed; bottom: 0; left: 0; width: 100%; background: #17212b; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #2b3b4d; }
+        .menu-item { background: none; border: none; color: #8ab4f8; font-size: 12px; font-weight: bold; display: flex; flex-direction: column; align-items: center; }
+        .menu-item span { font-size: 20px; margin-bottom: 5px; }
+        
+        #energy-container { position: fixed; bottom: 85px; width: 100%; }
+        #energy-bar { width: 80%; background: #222; height: 10px; border-radius: 10px; margin: 5px auto; border: 1px solid #444; overflow: hidden; }
         #fill { background: #64b5f6; height: 100%; width: 100%; transition: width 0.3s; }
-        .menu { display: flex; justify-content: space-around; margin-top: 10px; }
-        .menu-btn { background: none; border: 1px solid #64b5f6; color: #64b5f6; padding: 8px 15px; border-radius: 10px; font-size: 14px; }
-        #save-btn { background: #26a69a; border: none; color: white; padding: 15px; width: 90%; border-radius: 15px; font-size: 18px; font-weight: bold; margin-top: 15px; }
     </style>
 </head>
 <body>
-    <div class="stats">
-        <div>🤝 Рефералы: <span id="ref-count">0</span></div>
-        <div>🎁 Бонус: <span id="bonus-status">Доступен</span></div>
-    </div>
     <div id="score">0</div>
     <div class="game-area"><div id="wolf"></div></div>
-    <div class="bottom-nav">
+
+    <div id="energy-container">
         <div id="en-text">⚡ 2500 / 2500</div>
         <div id="energy-bar"><div id="fill"></div></div>
-        <div class="menu">
-            <button class="menu-btn" onclick="alert('Твоя ссылка в боте!')">РЕФЕРАЛЫ</button>
-            <button class="menu-btn" onclick="takeBonus()">БОНУС</button>
-        </div>
-        <button id="save-btn">СОХРАНИТЬ И ВЫЙТИ</button>
     </div>
+
+    <div class="bottom-menu">
+        <button class="menu-item" onclick="alert('🎁 Бонус: +500 монет!')"><span>🎁</span>БОНУС</button>
+        <button class="menu-item" onclick="saveData()"><span>💾</span>СОХРАНИТЬ</button>
+        <button class="menu-item" onclick="alert('🤝 Рефералы доступны в боте!')"><span>👥</span>РЕФЫ</button>
+        <button class="menu-item" onclick="alert('🏆 Топ игроков скоро!')"><span>🏆</span>ТОП</button>
+    </div>
+
     <script>
         const tg = window.Telegram.WebApp;
         const p = new URLSearchParams(window.location.search);
         let clicks = parseInt(p.get('bal')) || 0;
         let energy = parseInt(p.get('en')) || 2500;
 
-        function up() {
+        function update() {
             document.getElementById('score').innerText = clicks;
             document.getElementById('en-text').innerText = `⚡ ${energy} / 2500`;
             document.getElementById('fill').style.width = (energy/2500*100)+'%';
         }
 
-        function takeBonus() {
-            clicks += 500;
-            alert('Вы получили 500 монет!');
-            up();
-        }
-
         document.getElementById('wolf').ontouchstart = (e) => {
             e.preventDefault();
-            if(energy > 0) { clicks++; energy--; up(); }
+            if(energy > 0) { clicks++; energy--; update(); }
         };
 
-        document.getElementById('save-btn').onclick = () => {
+        function saveData() {
             tg.sendData(JSON.stringify({ clicks: clicks, energy: energy }));
             tg.close();
-        };
+        }
 
-        up(); tg.expand();
+        update(); tg.expand();
     </script>
 </body>
 </html>
