@@ -12,8 +12,7 @@
         #wolf:active { transform: scale(0.92); }
         .bottom-menu { width: 100%; background: #17212b; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #2b3b4d; padding-bottom: 30px; }
         .menu-item { background: none; border: none; color: #8ab4f8; font-size: 11px; font-weight: bold; display: flex; flex-direction: column; align-items: center; cursor: pointer; width: 25%; }
-        .menu-item:disabled { color: #444; cursor: not-allowed; }
-        #energy-container { width: 100%; margin-bottom: 10px; }
+        .menu-item:disabled { opacity: 0.3; }
         #energy-bar { width: 85%; background: #222; height: 10px; border-radius: 10px; margin: 5px auto; border: 1px solid #444; overflow: hidden; }
         #fill { background: #64b5f6; height: 100%; width: 100%; transition: width 0.2s; }
     </style>
@@ -21,15 +20,14 @@
 <body>
     <div id="score">0</div>
     <div class="game-area"><div id="wolf"></div></div>
-    <div id="energy-container">
-        <div>⚡ <span id="en-num">2500</span> / 2500</div>
-        <div id="energy-bar"><div id="fill"></div></div>
-    </div>
+    <div style="margin-bottom:10px;">⚡ <span id="en-num">2500</span> / 2500</div>
+    <div id="energy-bar"><div id="fill"></div></div>
+
     <div class="bottom-menu">
         <button class="menu-item" id="bonusBtn" onclick="takeBonus()"><span>🎁</span> <div id="bonusText">БОНУС</div></button>
-        <button class="menu-item" onclick="saveData()"><span>💾</span> СОХРАНИТЬ</button>
+        <button class="menu-item" onclick="saveData()"><span>💾</span> СЕЙВ</button>
         <button class="menu-item" onclick="showRefs()"><span>🤝</span> РЕФЫ</button>
-        <button class="menu-item" onclick="alert('Топ скоро!')"><span>🏆</span> ТОП</button>
+        <button class="menu-item" onclick="showTop()"><span>🏆</span> ТОП</button>
     </div>
 
     <script>
@@ -38,6 +36,7 @@
         let clicks = parseInt(p.get('bal')) || 0;
         let energy = parseInt(p.get('en')) || 2500;
         const uid = p.get('uid');
+        const topData = JSON.parse(p.get('top') || "[]");
 
         function updateUI() {
             document.getElementById('score').innerText = clicks;
@@ -47,36 +46,29 @@
         }
 
         function takeBonus() {
-            const now = Date.now();
-            localStorage.setItem('wolf_last_bonus', now);
+            localStorage.setItem('wolf_bonus_time', Date.now());
             clicks += 500;
             tg.HapticFeedback.notificationOccurred('success');
-            alert('Бонус +500 получен!');
+            alert('Подарок 500 WOLF получен!');
             updateUI();
         }
 
         function checkBonus() {
-            const last = localStorage.getItem('wolf_last_bonus');
-            const btn = document.getElementById('bonusBtn');
-            const txt = document.getElementById('bonusText');
-            if (last) {
-                const diff = Date.now() - parseInt(last);
-                const day = 24 * 60 * 60 * 1000;
-                if (diff < day) {
-                    btn.disabled = true;
-                    const timeLeft = day - diff;
-                    const hours = Math.floor(timeLeft / (1000 * 60 * 60));
-                    txt.innerText = hours + "ч";
-                    return;
-                }
+            const last = localStorage.getItem('wolf_bonus_time');
+            if (last && Date.now() - parseInt(last) < 86400000) {
+                document.getElementById('bonusBtn').disabled = true;
+                document.getElementById('bonusText').innerText = "24ч";
             }
-            btn.disabled = false;
-            txt.innerText = "БОНУС";
         }
 
         function showRefs() {
             const link = `https://t.me/Wolfmanybot?start=${uid}`;
-            tg.showPopup({ title: 'Твоя ссылка', message: link, buttons: [{type: 'close'}] });
+            tg.showPopup({ title: 'Рефералы', message: `Твоя ссылка:\n${link}`, buttons: [{type: 'close', text: 'ОК'}] });
+        }
+
+        function showTop() {
+            let list = topData.map((u, i) => `${i+1}. ${u[0]}: ${u[1]}`).join('\n');
+            tg.showPopup({ title: 'ТОП ИГРОКОВ', message: list || "Пока никого нет", buttons: [{type: 'close', text: 'Закрыть'}] });
         }
 
         document.getElementById('wolf').addEventListener('touchstart', (e) => {
@@ -91,7 +83,6 @@
 
         updateUI();
         tg.expand();
-        setInterval(checkBonus, 60000); // Проверка каждую минуту
     </script>
 </body>
 </html>
