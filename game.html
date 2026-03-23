@@ -5,13 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
+        /* ПОЛНЫЙ ЗАПРЕТ ВСЕХ СИСТЕМНЫХ ЭФФЕКТОВ */
         * {
-            -webkit-tap-highlight-color: transparent;
-            -webkit-touch-callout: none;
-            user-select: none;
-            -webkit-user-select: none;
-            outline: none;
+            -webkit-tap-highlight-color: transparent !important;
+            -webkit-touch-callout: none !important;
+            -webkit-user-select: none !important;
+            user-select: none !important;
+            -moz-user-select: none !important;
+            -ms-user-select: none !important;
+            outline: none !important;
         }
+        
         body { 
             background: #0b1016; 
             color: white; 
@@ -23,48 +27,59 @@
             flex-direction: column; 
             height: 100vh; 
             overflow: hidden; 
+            touch-action: manipulation;
         }
-        .header { font-size: 60px; font-weight: bold; color: #5da9f6; margin: 20px 0; }
+
+        .header { font-size: 64px; font-weight: bold; color: #5da9f6; margin: 30px 0; }
+
         .click-container { 
             flex: 1; 
             display: flex; 
             align-items: center; 
             justify-content: center; 
         }
-        /* Чистая круглая кнопка без рамок и фонов */
+
+        /* Кнопка волка БЕЗ эффектов выделения */
         .wolf-btn { 
             width: 280px; 
             height: 280px; 
             border-radius: 50%; 
             background: url('https://marko2512.github.io/Wolf-cliker/1774235761232.png') center/cover no-repeat; 
-            box-shadow: 0 0 40px rgba(78, 181, 241, 0.4);
+            box-shadow: 0 0 45px rgba(78, 181, 241, 0.5);
             cursor: pointer; 
-            transition: transform 0.05s;
+            transition: transform 0.05s ease-out;
             border: none;
+            /* Запрещаем браузеру считать это картинкой для перетаскивания */
+            -webkit-user-drag: none;
         }
-        .wolf-btn:active { transform: scale(0.92); }
+
+        /* Анимация нажатия — только масштаб */
+        .wolf-btn:active { transform: scale(0.94); }
 
         .energy-section { padding: 0 30px 100px; }
-        .energy-info { font-size: 18px; font-weight: bold; margin-bottom: 10px; color: #f1c40f; }
-        .progress-bg { width: 100%; height: 10px; background: #1c2a38; border-radius: 10px; }
-        .progress-fill { width: 100%; height: 100%; background: #4eb5f1; border-radius: 10px; transition: width 0.1s; }
+        .energy-info { font-size: 20px; font-weight: bold; margin-bottom: 12px; color: #f1c40f; }
+        .progress-bg { width: 100%; height: 12px; background: #1c2a38; border-radius: 15px; }
+        .progress-fill { width: 100%; height: 100%; background: #4eb5f1; border-radius: 15px; transition: width 0.1s; }
 
         .nav-menu { 
-            position: fixed; bottom: 0; width: 100%; height: 80px; 
+            position: fixed; bottom: 0; width: 100%; height: 85px; 
             background: #131d27; display: flex; justify-content: space-around; align-items: center; 
+            border-top: 1px solid #23313f;
         }
-        .nav-item { color: #5da9f6; font-size: 12px; font-weight: bold; cursor: pointer; }
+        .nav-item { color: #5da9f6; font-size: 12px; font-weight: bold; cursor: pointer; padding: 10px; }
     </style>
 </head>
-<body>
-    <div class="header" id="balance">0</div>
+<body oncontextmenu="return false;"> <div class="header" id="balance">0</div>
+    
     <div class="click-container">
-        <div class="wolf-btn" id="btn" onclick="tap()"></div>
+        <div class="wolf-btn" id="btn" onclick="tap()" draggable="false"></div>
     </div>
+    
     <div class="energy-section">
         <div class="energy-info">⚡ <span id="en-val">2500</span></div>
         <div class="progress-bg"><div class="progress-fill" id="en-bar"></div></div>
     </div>
+    
     <div class="nav-menu">
         <div class="nav-item" onclick="getBonus()">🎁 БОНУС</div>
         <div class="nav-item" onclick="saveData()">💾 СОХРАНИТЬ</div>
@@ -86,15 +101,28 @@
 
         function tap() {
             if (en > 0) {
-                bal++; en--; update();
-                if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+                bal++; 
+                en--; 
+                update();
+                // Вибрация через Telegram API
+                if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
             }
         }
 
         setInterval(() => { if (en < maxEn) { en++; update(); } }, 1000);
-        function getBonus() { bal += 500; update(); }
-        function saveData() { tg.sendData(JSON.stringify({bal: bal, en: en})); }
+        
+        function getBonus() { 
+            bal += 500; 
+            update(); 
+            tg.HapticFeedback.notificationOccurred('success');
+        }
+
+        function saveData() { 
+            tg.sendData(JSON.stringify({bal: bal, en: en})); 
+        }
+
         tg.expand();
+        tg.ready();
     </script>
 </body>
 </html>
