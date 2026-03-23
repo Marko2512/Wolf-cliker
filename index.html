@@ -6,22 +6,18 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body { background: #0e1621; color: white; font-family: sans-serif; text-align: center; margin: 0; overflow: hidden; }
-        .score { font-size: 50px; font-weight: bold; color: #3498db; margin-top: 30px; }
+        .score { font-size: 50px; font-weight: bold; color: #3498db; margin-top: 40px; }
         .wolf-btn { 
-            width: 240px; height: 240px; border-radius: 50%; 
+            width: 250px; height: 250px; border-radius: 50%; 
             background: url('1774235761232.png') center/cover;
-            border: 6px solid #3498db; margin: 30px auto; 
-        }
-        #save-btn {
-            background: #27ae60; color: white; border: none; padding: 20px;
-            width: 80%; font-size: 20px; border-radius: 15px; font-weight: bold;
+            border: 6px solid #3498db; margin: 50px auto; 
         }
     </style>
 </head>
 <body>
     <div class="score">💰 <span id="score">0</span></div>
     <div class="wolf-btn" id="btn"></div>
-    <button id="save-btn" onclick="hardClose()">СОХРАНИТЬ И ВЫЙТИ</button>
+    <p>Просто закрой окно (нажми X), чтобы сохранить!</p>
 
     <script>
         let tg = window.Telegram.WebApp;
@@ -36,19 +32,12 @@
             localStorage.setItem('wolf_score', score);
         });
 
-        function hardClose() {
-            const btn = document.getElementById('save-btn');
-            btn.innerText = "ОТПРАВКА...";
-            btn.style.background = "#f39c12";
-
-            // Отправляем данные
-            tg.sendData(JSON.stringify({clicks: score}));
-            
-            // Ждем чуть-чуть и закрываем принудительно
-            setTimeout(() => {
-                tg.close();
-            }, 500);
-        }
+        // САМОЕ ВАЖНОЕ: Отправка при закрытии
+        window.addEventListener('beforeunload', () => {
+            if (score > 0) {
+                tg.sendData(JSON.stringify({clicks: score}));
+            }
+        });
     </script>
 </body>
 </html>
