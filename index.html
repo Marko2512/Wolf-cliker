@@ -5,42 +5,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body { 
-            background: #0e1621; color: white; font-family: sans-serif; 
-            text-align: center; margin: 0; overflow: hidden; user-select: none;
-            -webkit-tap-highlight-color: transparent;
-        }
-        .score-container { margin-top: 30px; }
-        .score { font-size: 50px; font-weight: bold; color: #3498db; }
+        body { background: #0e1621; color: white; font-family: sans-serif; text-align: center; margin: 0; overflow: hidden; user-select: none; }
+        .score { font-size: 50px; font-weight: bold; color: #3498db; margin-top: 30px; }
         .wolf-btn { 
-            width: 260px; height: 260px; border-radius: 50%; 
+            width: 250px; height: 250px; border-radius: 50%; 
             background: url('1774235761232.png') center/cover;
-            border: 6px solid #3498db; margin: 50px auto; cursor: pointer;
-            box-shadow: 0 0 30px rgba(52, 152, 219, 0.5); transition: transform 0.05s;
+            border: 6px solid #3498db; margin: 40px auto; cursor: pointer;
+            box-shadow: 0 0 20px rgba(52, 152, 219, 0.5);
         }
-        .wolf-btn:active { transform: scale(0.92); }
+        .save-btn {
+            background: #27ae60; color: white; border: none; padding: 15px 30px;
+            font-size: 18px; border-radius: 10px; cursor: pointer; font-weight: bold;
+        }
     </style>
 </head>
 <body>
-    <div style="margin-top:20px; font-weight: bold;">WOLFMANY CLICKER</div>
-    <div class="score-container">💰 <span id="score" class="score">0</span></div>
+    <div class="score">💰 <span id="score">0</span></div>
     <div class="wolf-btn" id="btn"></div>
+    
+    <button class="save-btn" onclick="saveAndExit()">СОХРАНИТЬ И ВЫЙТИ</button>
 
     <script>
         let tg = window.Telegram.WebApp;
         let score = parseInt(localStorage.getItem('wolf_score')) || 0;
-        
         tg.expand();
         document.getElementById('score').innerText = score;
 
-        // ГЛАВНАЯ ФУНКЦИЯ: Отправляет монеты в Termux
-        function syncData() {
-            if (score > 0) {
-                tg.sendData(JSON.stringify({clicks: score}));
-            }
-        }
-
-        // Клик по волку
         document.getElementById('btn').addEventListener('touchstart', (e) => {
             e.preventDefault();
             score++;
@@ -48,11 +38,14 @@
             localStorage.setItem('wolf_score', score);
         });
 
-        // Отправляем данные боту каждые 5 секунд
-        setInterval(syncData, 5000);
-
-        // Также отправляем данные при любом изменении окна (например, при закрытии)
-        tg.onEvent('viewportChanged', syncData);
+        function saveAndExit() {
+            if (score > 0) {
+                // Эта команда отправит данные и ЗАКРОЕТ игру
+                tg.sendData(JSON.stringify({clicks: score}));
+            } else {
+                tg.close();
+            }
+        }
     </script>
 </body>
 </html>
