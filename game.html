@@ -5,25 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        * { -webkit-tap-highlight-color: transparent; user-select: none; outline: none; }
+        * { -webkit-tap-highlight-color: transparent; outline: none; box-sizing: border-box; }
         body { background: #0b1016; color: white; text-align: center; font-family: sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
-        #balance { font-size: 80px; font-weight: bold; color: #5da9f6; margin-top: 50px; }
-        .energy { color: #f1c40f; font-size: 20px; margin: 10px 0; }
-        .click-area { flex: 1; display: flex; align-items: center; justify-content: center; }
+        #balance { font-size: 80px; font-weight: bold; color: #5da9f6; margin-top: 40px; }
+        .energy { color: #f1c40f; font-size: 20px; }
+        .click-zone { flex: 1; display: flex; align-items: center; justify-content: center; }
         .wolf-btn { width: 280px; height: 280px; border-radius: 50%; background: url('https://marko2512.github.io/Wolf-cliker/1774235761232.png') center/cover; box-shadow: 0 0 40px #4eb5f1; cursor: pointer; transition: 0.1s; border: none; }
         .wolf-btn:active { transform: scale(0.92); }
         .nav { position: fixed; bottom: 0; width: 100%; height: 85px; background: #131d27; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #23313f; }
-        .nav-item { color: #5da9f6; font-size: 12px; font-weight: bold; cursor: pointer; text-decoration: none; }
+        .nav-item { color: #5da9f6; font-size: 12px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
     <div id="balance">0</div>
     <div class="energy">⚡ <span id="en-val">2500</span></div>
-    
-    <div class="click-area">
-        <div class="wolf-btn" onclick="tap()"></div>
-    </div>
-
+    <div class="click-zone"><div class="wolf-btn" onclick="tap()"></div></div>
     <div class="nav">
         <div class="nav-item" onclick="getBonus()">🎁 БОНУС</div>
         <div class="nav-item" onclick="copyRef()">👥 РЕФЫ</div>
@@ -42,17 +38,22 @@
             document.getElementById('en-val').innerText = en;
         }
 
+        // Функция принудительного сохранения
+        function sendData() {
+            tg.sendData(JSON.stringify({bal: bal, en: en}));
+        }
+
         function tap() {
             if (en > 0) { 
                 bal++; en--; updateUI(); 
                 tg.HapticFeedback.impactOccurred('light'); 
-                if (bal % 10 === 0) save(); // Сохраняем каждые 10 кликов
+                if (bal % 20 === 0) sendData(); // Сохранять каждые 20 кликов
             }
         }
 
-        function save() {
-            tg.sendData(JSON.stringify({bal: bal, en: en}));
-        }
+        // Сохранение ПРИ ВЫХОДЕ (Автоматически)
+        window.addEventListener('beforeunload', sendData);
+        tg.onEvent('viewportChanged', sendData);
 
         function copyRef() {
             const link = "https://t.me/WolfMany_bot?start=" + uid;
@@ -60,20 +61,31 @@
             el.value = link; document.body.appendChild(el);
             el.select(); document.execCommand('copy');
             document.body.removeChild(el);
-            tg.showAlert("Ссылка скопирована!\n" + link);
-        }
-
-        function showTop() {
-            tg.showAlert("🏆 ТОП ИГРОКОВ:\n1. Marko: 50000\n2. Wolf: 25000\n3. Ты: " + bal);
+            tg.showAlert("Ссылка скопирована!");
         }
 
         function getBonus() {
-            bal += 500; updateUI(); save();
-            tg.showAlert("Бонус +500 начислен!");
+            const now = Date.now();
+            const last = localStorage.getItem('last_bonus_time');
+            if (!last || (now - last > 86400000)) { // 24 часа в миллисекундах
+                bal += 500;
+                localStorage.setItem('last_bonus_time', now);
+                updateUI();
+                sendData();
+                tg.showAlert("🎁 Бонус +500 начислен!");
+            } else {
+                const hoursLeft = Math.ceil((86400000 - (now - last)) / 3600000);
+                tg.showAlert("Заходи через " + hoursLeft + " ч.!");
+            }
+        }
+
+        function showTop() {
+            tg.showAlert("🏆 ТОП:\n1. Marko: 100k\n2. Ты: " + bal);
         }
 
         setInterval(() => { if (en < 2500) { en++; updateUI(); } }, 1000);
-        updateUI(); tg.expand();
+        updateUI(); 
+        tg.expand();
     </script>
 </body>
 </html>
