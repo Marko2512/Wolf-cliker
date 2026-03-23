@@ -1,43 +1,78 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wolf Marko Clicker</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body { background: #0b0e11; color: #fff; font-family: sans-serif; text-align: center; margin: 0; overflow: hidden; user-select: none; }
-        .header { margin-top: 20px; font-size: 22px; color: #0088cc; font-weight: bold; }
-        .balance { font-size: 48px; margin: 15px 0; font-weight: 900; }
-        .wolf-btn { width: 240px; height: 240px; border-radius: 50%; border: 6px solid #1c232d;
-                    background: url('https://i.ibb.co/vz44444/wolf-logo.jpg') center/cover;
-                    margin: 20px auto; cursor: pointer; transition: transform 0.05s;
-                    box-shadow: 0 0 20px rgba(0, 136, 204, 0.2); }
-        .wolf-btn:active { transform: scale(0.92); }
-        .energy-bar { width: 80%; height: 12px; background: #1c232d; margin: 30px auto; border-radius: 10px; }
-        .energy-fill { width: 100%; height: 100%; background: #0088cc; border-radius: 10px; transition: 0.2s; }
+        body { background: #0e1621; color: white; font-family: sans-serif; text-align: center; margin: 0; overflow: hidden; user-select: none; }
+        .header { margin-top: 20px; color: #3498db; font-weight: bold; font-size: 20px; }
+        .score-container { font-size: 48px; margin: 20px 0; display: flex; align-items: center; justify-content: center; }
+        .coin-icon { width: 40px; margin-right: 10px; }
+        .wolf-btn { 
+            width: 250px; height: 250px; border-radius: 50%; 
+            background: url('https://i.ibb.co/Vp6Yf0L/wolf-avatar.png') center/cover;
+            border: 8px solid #3498db; box-shadow: 0 0 30px #3498db;
+            margin: 20px auto; cursor: pointer; transition: transform 0.05s;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .wolf-btn:active { transform: scale(0.95); }
+        .energy-bar { width: 80%; height: 12px; background: #2c3e50; margin: 20px auto; border-radius: 6px; border: 1px solid #34495e; }
+        .energy-fill { width: 100%; height: 100%; background: linear-gradient(90deg, #3498db, #2ecc71); border-radius: 6px; transition: width 0.2s; }
+        .stats { font-size: 18px; color: #bdc3c7; }
     </style>
 </head>
 <body>
     <div class="header">WOLF MARKO CLICKER</div>
-    <div class="balance">💰 <span id="bal">0</span></div>
-    <div class="wolf-btn" onclick="tap()"></div>
-    <div class="energy-bar"><div id="fill" class="energy-fill"></div></div>
-    <div>⚡️ Овцы: <span id="en">1000</span>/1000</div>
+    <div class="score-container">
+        <img src="https://cdn-icons-png.flaticon.com/512/2933/2933116.png" class="coin-icon">
+        <span id="score">0</span>
+    </div>
+    
+    <div class="wolf-btn" id="clickBtn"></div>
+    
+    <div class="energy-bar"><div class="energy-fill" id="energyFill"></div></div>
+    <div class="stats">⚡ Энергия: <span id="energy">1000</span>/1000</div>
 
     <script>
         let tg = window.Telegram.WebApp;
-        let b = 0, e = 1000;
+        let score = parseInt(localStorage.getItem('wolf_score')) || 0;
+        let energy = parseInt(localStorage.getItem('wolf_energy')) || 1000;
+        
         tg.expand();
-        function tap() {
-            if (e >= 10) {
-                b += 1; e -= 10;
-                document.getElementById('bal').innerText = b;
-                document.getElementById('en').innerText = e;
-                document.getElementById('fill').style.width = (e/10) + "%";
+        tg.headerColor = '#0e1621';
+
+        const scoreEl = document.getElementById('score');
+        const energyEl = document.getElementById('energy');
+        const energyFill = document.getElementById('energyFill');
+
+        function updateDisplay() {
+            scoreEl.innerText = score;
+            energyEl.innerText = energy;
+            energyFill.style.width = (energy / 10) + '%';
+            localStorage.setItem('wolf_score', score);
+            localStorage.setItem('wolf_energy', energy);
+        }
+
+        document.getElementById('clickBtn').addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            if (energy > 0) {
+                score++;
+                energy -= 1;
+                updateDisplay();
                 tg.HapticFeedback.impactOccurred('medium');
             }
-        }
-        setInterval(() => { if(e < 1000) { e += 2; document.getElementById('en').innerText = e; document.getElementById('fill').style.width = (e/10) + "%"; } }, 1000);
+        });
+
+        setInterval(() => {
+            if (energy < 1000) {
+                energy = Math.min(1000, energy + 1);
+                updateDisplay();
+            }
+        }, 1500);
+
+        updateDisplay();
     </script>
 </body>
 </html>
