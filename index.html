@@ -6,24 +6,26 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body { background: #0e1621; color: white; font-family: sans-serif; text-align: center; margin: 0; overflow: hidden; user-select: none; }
-        .score { font-size: 50px; font-weight: bold; color: #3498db; margin-top: 30px; }
+        .score-container { margin-top: 40px; font-size: 55px; font-weight: bold; color: #3498db; }
         .wolf-btn { 
             width: 250px; height: 250px; border-radius: 50%; 
             background: url('1774235761232.png') center/cover;
             border: 6px solid #3498db; margin: 40px auto; cursor: pointer;
-            box-shadow: 0 0 20px rgba(52, 152, 219, 0.5);
+            box-shadow: 0 0 25px rgba(52, 152, 219, 0.6); transition: transform 0.05s;
         }
+        .wolf-btn:active { transform: scale(0.93); }
         .save-btn {
-            background: #27ae60; color: white; border: none; padding: 15px 30px;
-            font-size: 18px; border-radius: 10px; cursor: pointer; font-weight: bold;
+            background: #27ae60; color: white; border: none; padding: 18px 40px;
+            font-size: 20px; border-radius: 12px; cursor: pointer; font-weight: bold;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
         }
     </style>
 </head>
 <body>
-    <div class="score">💰 <span id="score">0</span></div>
+    <div class="score-container">💰 <span id="score">0</span></div>
     <div class="wolf-btn" id="btn"></div>
     
-    <button class="save-btn" onclick="saveAndExit()">СОХРАНИТЬ И ВЫЙТИ</button>
+    <button class="save-btn" onclick="finishGame()">СОХРАНИТЬ И ВЫЙТИ</button>
 
     <script>
         let tg = window.Telegram.WebApp;
@@ -31,6 +33,7 @@
         tg.expand();
         document.getElementById('score').innerText = score;
 
+        // Клик по волку
         document.getElementById('btn').addEventListener('touchstart', (e) => {
             e.preventDefault();
             score++;
@@ -38,13 +41,15 @@
             localStorage.setItem('wolf_score', score);
         });
 
-        function saveAndExit() {
+        // Функция сохранения и ЖЕСТКОГО выхода
+        function finishGame() {
             if (score > 0) {
-                // Эта команда отправит данные и ЗАКРОЕТ игру
                 tg.sendData(JSON.stringify({clicks: score}));
-            } else {
-                tg.close();
             }
+            // Закрываем приложение через небольшую паузу
+            setTimeout(() => {
+                tg.close();
+            }, 150);
         }
     </script>
 </body>
