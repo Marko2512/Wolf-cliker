@@ -7,61 +7,68 @@
     <style>
         * { -webkit-tap-highlight-color: transparent; -webkit-touch-callout: none; user-select: none; -webkit-user-select: none; outline: none; }
         body { background: #0b1016; color: white; text-align: center; font-family: sans-serif; margin: 0; padding: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; touch-action: manipulation; }
-        .header { font-size: 64px; font-weight: bold; color: #5da9f6; margin: 30px 0; }
+        .header { font-size: 60px; font-weight: bold; color: #5da9f6; margin: 25px 0; }
         .click-container { flex: 1; display: flex; align-items: center; justify-content: center; }
-        .wolf-btn { width: 280px; height: 280px; border-radius: 50%; background: url('https://marko2512.github.io/Wolf-cliker/1774235761232.png') center/cover no-repeat; box-shadow: 0 0 45px rgba(78, 181, 241, 0.5); cursor: pointer; transition: transform 0.05s; border: none; -webkit-user-drag: none; }
-        .wolf-btn:active { transform: scale(0.94); }
+        .wolf-btn { width: 270px; height: 270px; border-radius: 50%; background: url('https://marko2512.github.io/Wolf-cliker/1774235761232.png') center/cover no-repeat; box-shadow: 0 0 40px rgba(78, 181, 241, 0.5); cursor: pointer; transition: transform 0.05s; border: none; }
+        .wolf-btn:active { transform: scale(0.93); }
         .energy-section { padding: 0 30px 100px; }
-        .energy-info { font-size: 20px; font-weight: bold; margin-bottom: 12px; color: #f1c40f; }
-        .progress-bg { width: 100%; height: 12px; background: #1c2a38; border-radius: 15px; }
-        .progress-fill { width: 100%; height: 100%; background: #4eb5f1; border-radius: 15px; transition: width 0.1s; }
+        .progress-bg { width: 100%; height: 12px; background: #1c2a38; border-radius: 15px; margin-top: 10px; }
+        .progress-fill { height: 100%; background: #4eb5f1; border-radius: 15px; transition: width 0.1s; }
         .nav-menu { position: fixed; bottom: 0; width: 100%; height: 85px; background: #131d27; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #23313f; }
-        .nav-item { color: #5da9f6; font-size: 10px; font-weight: bold; cursor: pointer; display: flex; flex-direction: column; align-items: center; }
-        .bonus-locked { opacity: 0.3; pointer-events: none; }
+        .nav-item { color: #5da9f6; font-size: 11px; font-weight: bold; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; }
     </style>
 </head>
 <body oncontextmenu="return false;">
     <div class="header" id="balance">0</div>
     <div class="click-container"><div class="wolf-btn" onclick="tap()" draggable="false"></div></div>
     <div class="energy-section">
-        <div class="energy-info">⚡ <span id="en-val">2500</span></div>
+        <div style="font-size: 18px; color: #f1c40f;">⚡ <span id="en-val">2500</span> / 2500</div>
         <div class="progress-bg"><div class="progress-fill" id="en-bar"></div></div>
     </div>
     <div class="nav-menu">
-        <div id="bonus-btn" class="nav-item" onclick="getBonus()"><span>🎁</span>БОНУС</div>
-        <div class="nav-item" onclick="saveData()"><span>💾</span>СОХРАНИТЬ</div>
-        <div class="nav-item" onclick="tg.showAlert('Твой ID: ' + tg.initDataUnsafe.user.id)"><span>👥</span>РЕФЫ</div>
-        <div class="nav-item" onclick="tg.showAlert('Топ игроков скоро!')"><span>🏆</span>ТОП</div>
+        <div class="nav-item" onclick="getBonus()"><span>🎁</span>БОНУС</div>
+        <div class="nav-item" onclick="saveData()"><span>💾</span>ХРАНИТЬ</div>
+        <div class="nav-item" onclick="showRefs()"><span>👥</span>РЕФЫ</div>
+        <div class="nav-item" onclick="showTop()"><span>🏆</span>ТОП</div>
     </div>
     <script>
         const tg = window.Telegram.WebApp;
         const params = new URLSearchParams(window.location.search);
         let bal = parseInt(params.get('bal')) || 0;
         let en = parseInt(params.get('en')) || 2500;
-        const maxEn = 2500;
+        const uid = params.get('uid');
 
         function updateUI() {
             document.getElementById('balance').innerText = bal;
             document.getElementById('en-val').innerText = en;
-            document.getElementById('en-bar').style.width = (en / maxEn * 100) + '%';
-            const last = localStorage.getItem('wolf_last_bonus');
-            if (last && (Date.now() - last < 86400000)) document.getElementById('bonus-btn').classList.add('bonus-locked');
+            document.getElementById('en-bar').style.width = (en / 2500 * 100) + '%';
         }
 
         function tap() {
             if (en > 0) { bal++; en--; updateUI(); tg.HapticFeedback.impactOccurred('light'); }
         }
 
-        function getBonus() {
-            bal += 500; localStorage.setItem('wolf_last_bonus', Date.now());
-            updateUI(); tg.showAlert("Бонус +500!");
-        }
-
         function saveData() {
             tg.sendData(JSON.stringify({bal: bal, en: en}));
         }
 
-        setInterval(() => { if (en < maxEn) { en++; updateUI(); } }, 1000);
+        function showRefs() {
+            tg.showAlert("Твоя ссылка для друзей:\nhttps://t.me/WolfMany_bot?start=" + uid);
+        }
+
+        function showTop() {
+            tg.showAlert("🏆 ТОП-3 ИГРОКОВ:\n1. Marko: 1.500.000\n2. Wolf: 800.000\n3. Ты: " + bal);
+        }
+
+        function getBonus() {
+            const last = localStorage.getItem('last_b');
+            if (!last || Date.now() - last > 86400000) {
+                bal += 500; localStorage.setItem('last_b', Date.now());
+                updateUI(); tg.showAlert("Бонус +500 начислен!");
+            } else { tg.showAlert("Жди 24 часа!"); }
+        }
+
+        setInterval(() => { if (en < 2500) { en++; updateUI(); } }, 1000);
         updateUI();
         tg.expand();
     </script>
