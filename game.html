@@ -16,8 +16,7 @@
         .progress-bg { width: 100%; height: 12px; background: #1c2a38; border-radius: 15px; }
         .progress-fill { width: 100%; height: 100%; background: #4eb5f1; border-radius: 15px; transition: width 0.1s; }
         .nav-menu { position: fixed; bottom: 0; width: 100%; height: 85px; background: #131d27; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #23313f; }
-        .nav-item { color: #5da9f6; font-size: 12px; font-weight: bold; cursor: pointer; padding: 10px; transition: 0.3s; }
-        /* Состояние когда бонус нельзя взять */
+        .nav-item { color: #5da9f6; font-size: 10px; font-weight: bold; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 5px; }
         .bonus-locked { opacity: 0.3; filter: grayscale(1); pointer-events: none; }
     </style>
 </head>
@@ -29,8 +28,10 @@
         <div class="progress-bg"><div class="progress-fill" id="en-bar"></div></div>
     </div>
     <div class="nav-menu">
-        <div id="bonus-btn" class="nav-item" onclick="getBonus()">🎁 БОНУС</div>
-        <div class="nav-item" onclick="saveData()">💾 СОХРАНИТЬ</div>
+        <div id="bonus-btn" class="nav-item" onclick="getBonus()"><span>🎁</span>БОНУС</div>
+        <div class="nav-item" onclick="saveData()"><span>💾</span>СОХРАНИТЬ</div>
+        <div class="nav-item" onclick="alert('Скоро: Реферальная система')"><span>👥</span>РЕФЫ</div>
+        <div class="nav-item" onclick="alert('Скоро: Таблица лидеров')"><span>🏆</span>ТОП</div>
     </div>
 
     <script>
@@ -45,18 +46,13 @@
             document.getElementById('en-val').innerText = en;
             document.getElementById('en-bar').style.width = (en / maxEn * 100) + '%';
             
-            // Проверка времени бонуса
             const lastBonus = localStorage.getItem('wolf_last_bonus');
             const now = Date.now();
             const btn = document.getElementById('bonus-btn');
-            
             if (lastBonus && (now - lastBonus < 24 * 60 * 60 * 1000)) {
                 btn.classList.add('bonus-locked');
-                const hoursLeft = Math.ceil((24 * 60 * 60 * 1000 - (now - lastBonus)) / (1000 * 60 * 60));
-                btn.innerText = `🎁 ЧЕРЕЗ ${hoursLeft}Ч`;
             } else {
                 btn.classList.remove('bonus-locked');
-                btn.innerText = `🎁 БОНУС`;
             }
         }
 
@@ -70,23 +66,27 @@
         function getBonus() {
             const lastBonus = localStorage.getItem('wolf_last_bonus');
             const now = Date.now();
-            
             if (!lastBonus || (now - lastBonus >= 24 * 60 * 60 * 1000)) {
                 bal += 500;
                 localStorage.setItem('wolf_last_bonus', now);
                 updateUI();
-                tg.showAlert("Бонус +500 получен! Приходи завтра.");
+                tg.showAlert("Бонус +500 монет начислен!");
             }
         }
 
         function saveData() {
+            // Отправляем данные боту
             tg.sendData(JSON.stringify({bal: bal, en: en}));
+            tg.HapticFeedback.notificationOccurred('success');
+            // Визуальный эффект на кнопке
+            tg.showAlert("Данные отправлены боту на сохранение!");
         }
 
         setInterval(() => { if (en < maxEn) { en++; updateUI(); } }, 1000);
         
         updateUI();
         tg.expand();
+        tg.ready();
     </script>
 </body>
 </html>
