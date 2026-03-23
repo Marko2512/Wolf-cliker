@@ -27,10 +27,10 @@
         <div class="progress-bg"><div class="progress-fill" id="en-bar"></div></div>
     </div>
     <div class="nav-menu">
-        <div class="nav-item" onclick="tg.showAlert('Бонус: +500 монет!'); bal+=500; update();"><span>🎁</span>БОНУС</div>
+        <div class="nav-item" onclick="getBonus()"><span>🎁</span>БОНУС</div>
         <div class="nav-item" onclick="saveData()"><span>💾</span>СОХРАНИТЬ</div>
-        <div class="nav-item" onclick="tg.showAlert('Реферальная система в разработке!')"><span>👥</span>РЕФЫ</div>
-        <div class="nav-item" onclick="tg.showAlert('Топ игроков будет доступен позже!')"><span>🏆</span>ТОП</div>
+        <div class="nav-item" onclick="alert('Скоро!')"><span>👥</span>РЕФЫ</div>
+        <div class="nav-item" onclick="alert('Скоро!')"><span>🏆</span>ТОП</div>
     </div>
 
     <script>
@@ -51,14 +51,18 @@
             if (en > 0) { bal++; en--; update(); }
         }
 
-        // Таймер восстановления +1 в секунду
         setInterval(() => {
             if (en < maxEn) { en++; update(); }
         }, 1000);
 
+        function getBonus() {
+            bal += 500;
+            update();
+            alert("Бонус +500!");
+        }
+
         function saveData() {
-            tg.sendData(json.stringify({bal: bal, en: en}));
-            tg.close();
+            tg.sendData(JSON.stringify({bal: bal, en: en}));
         }
         tg.expand();
     </script>
