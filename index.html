@@ -5,154 +5,54 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body { 
-            background: #0e1621; 
-            color: white; 
-            text-align: center; 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            margin: 0; 
-            overflow: hidden; 
-            display: flex; 
-            flex-direction: column; 
-            height: 100vh; 
-        }
-        #score { 
-            font-size: 50px; 
-            font-weight: bold; 
-            margin-top: 30px; 
-            text-shadow: 0 0 20px #64b5f6; 
-        }
-        .game-area { 
-            flex-grow: 1; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-        }
-        #wolf { 
-            width: 260px; 
-            height: 260px; 
-            border-radius: 50%; 
-            border: 6px solid #64b5f6; 
-            background: url('https://raw.githubusercontent.com/Marko2512/Wolf-cliker/main/1774235761232.png') center/cover; 
-            transition: transform 0.05s; 
-            box-shadow: 0 0 40px rgba(100, 181, 246, 0.3);
-            cursor: pointer;
-            -webkit-tap-highlight-color: transparent;
-        }
-        #energy-container { 
-            width: 85%; 
-            background: #222; 
-            height: 25px; 
-            border-radius: 15px; 
-            margin: 10px auto; 
-            border: 2px solid #333; 
-            overflow: hidden;
-        }
-        #energy-bar { 
-            background: linear-gradient(90deg, #64b5f6, #2196f3); 
-            height: 100%; 
-            width: 100%; 
-            transition: width 0.2s ease-out; 
-        }
-        #energy-text { 
-            font-size: 18px; 
-            font-weight: bold; 
-            margin-bottom: 5px; 
-        }
-        #save-btn { 
-            background: #26a69a; 
-            border: none; 
-            color: white; 
-            padding: 18px; 
-            width: 90%; 
-            border-radius: 20px; 
-            font-size: 20px; 
-            margin-bottom: 30px; 
-            font-weight: bold; 
-            align-self: center;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-        }
-    </script>
+        body { background: #0e1621; color: white; text-align: center; font-family: sans-serif; margin: 0; overflow: hidden; display: flex; flex-direction: column; height: 100vh; }
+        #score { font-size: 50px; font-weight: bold; margin-top: 20px; color: #64b5f6; }
+        .game-area { flex-grow: 1; display: flex; align-items: center; justify-content: center; }
+        #wolf { width: 250px; height: 250px; border-radius: 50%; border: 5px solid #64b5f6; background: url('https://raw.githubusercontent.com/Marko2512/Wolf-cliker/main/1774235761232.png') center/cover; transition: transform 0.05s; }
+        #energy-container { width: 80%; background: #222; height: 20px; border-radius: 10px; margin: 10px auto; border: 1px solid #444; overflow: hidden; }
+        #energy-bar { background: #64b5f6; height: 100%; width: 100%; transition: width 0.2s; }
+        #save-btn { background: #26a69a; border: none; color: white; padding: 15px; width: 90%; border-radius: 15px; font-size: 18px; margin-bottom: 20px; font-weight: bold; }
+    </style>
 </head>
 <body>
     <div id="score">0</div>
-    
-    <div class="game-area">
-        <div id="wolf"></div>
-    </div>
-    
+    <div class="game-area"><div id="wolf"></div></div>
     <div id="energy-text">⚡ 2500 / 2500</div>
-    <div id="energy-container">
-        <div id="energy-bar"></div>
-    </div>
-    
+    <div id="energy-container"><div id="energy-bar"></div></div>
     <button id="save-btn">СОХРАНИТЬ И ВЫЙТИ</button>
 
     <script>
         const tg = window.Telegram.WebApp;
         const params = new URLSearchParams(window.location.search);
-        
-        // Получаем данные от бота
         let clicks = parseInt(params.get('bal')) || 0;
         let energy = parseInt(params.get('en')) || 2500;
         const maxEnergy = 2500;
 
-        const scoreEl = document.getElementById('score');
-        const energyBar = document.getElementById('energy-bar');
-        const energyText = document.getElementById('energy-text');
-        const wolf = document.getElementById('wolf');
-
         function updateUI() {
-            scoreEl.innerText = clicks;
-            energyText.innerText = `⚡ ${energy} / ${maxEnergy}`;
-            energyBar.style.width = (energy / maxEnergy * 100) + '%';
+            document.getElementById('score').innerText = clicks;
+            document.getElementById('energy-text').innerText = `⚡ ${energy} / ${maxEnergy}`;
+            document.getElementById('energy-bar').style.width = (energy / maxEnergy * 100) + '%';
         }
 
-        // Таймер восстановления: +1 энергия каждые 2 секунды
-        setInterval(() => {
-            if (energy < maxEnergy) {
-                energy++;
-                updateUI();
-            }
-        }, 2000);
+        // Регенерация энергии
+        setInterval(() => { if (energy < maxEnergy) { energy++; updateUI(); } }, 2000);
 
-        function handleTap(e) {
-            if (e) e.preventDefault();
+        function handleTap() {
             if (energy > 0) {
-                clicks++;
-                energy--;
-                updateUI();
-                
-                // Эффект нажатия
-                wolf.style.transform = "scale(0.92)";
-                setTimeout(() => wolf.style.transform = "scale(1)", 50);
-                
-                // Вибрация
-                if (tg.HapticFeedback) {
-                    tg.HapticFeedback.impactOccurred('medium');
-                }
-            } else {
-                if (tg.HapticFeedback) {
-                    tg.HapticFeedback.notificationOccurred('error');
-                }
+                clicks++; energy--; updateUI();
+                document.getElementById('wolf').style.transform = "scale(0.95)";
+                setTimeout(() => document.getElementById('wolf').style.transform = "scale(1)", 50);
             }
         }
 
-        // Поддержка и ПК, и Телефона
-        wolf.addEventListener('touchstart', handleTap);
-        wolf.addEventListener('mousedown', handleTap);
-
-        // Кнопка сохранения данных в бота
+        document.getElementById('wolf').addEventListener('touchstart', (e) => { e.preventDefault(); handleTap(); });
         document.getElementById('save-btn').onclick = () => {
-            const dataToSend = JSON.stringify({ clicks: clicks, energy: energy });
-            tg.sendData(dataToSend);
+            tg.sendData(JSON.stringify({ clicks: clicks, energy: energy }));
             setTimeout(() => tg.close(), 100);
         };
 
-        // Инициализация
         updateUI();
         tg.expand();
     </script>
 </body>
-            </html>
-        
+</html>
