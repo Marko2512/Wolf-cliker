@@ -5,73 +5,47 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        * { -webkit-tap-highlight-color: transparent; outline: none; box-sizing: border-box; }
-        body { background: #0b1016; color: white; text-align: center; font-family: sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
-        .stat-box { padding-top: 30px; }
-        #bal { font-size: 70px; font-weight: bold; color: #5da9f6; display: block; }
-        .en-text { color: #f1c40f; font-size: 20px; margin-top: 5px; }
-        .click-zone { flex: 1; display: flex; align-items: center; justify-content: center; }
-        .wolf-btn { width: 260px; height: 260px; border-radius: 50%; background: url('https://marko2512.github.io/Wolf-cliker/1774235761232.png') center/cover; box-shadow: 0 0 35px #4eb5f1; cursor: pointer; transition: 0.1s; border: none; }
-        .wolf-btn:active { transform: scale(0.92); }
-        .save-btn { background: #27ae60; color: white; border: none; padding: 10px 20px; border-radius: 10px; font-weight: bold; margin-bottom: 90px; cursor: pointer; }
-        .nav { position: fixed; bottom: 0; width: 100%; height: 80px; background: #131d27; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #23313f; }
-        .nav-item { color: #5da9f6; font-size: 11px; font-weight: bold; cursor: pointer; }
+        body { background: #0b1016; color: white; text-align: center; font-family: sans-serif; margin: 0; }
+        #balance { font-size: 60px; font-weight: bold; color: #5da9f6; margin-top: 30px; }
+        .energy { color: #f1c40f; font-size: 18px; margin-bottom: 20px; }
+        .wolf-btn { width: 250px; height: 250px; border-radius: 50%; background: url('https://marko2512.github.io/Wolf-cliker/1774235761232.png') center/cover; box-shadow: 0 0 30px #4eb5f1; cursor: pointer; border: none; outline: none; transition: 0.1s; }
+        .wolf-btn:active { transform: scale(0.95); }
+        .save-btn { margin-top: 30px; padding: 15px 30px; background: #27ae60; border: none; border-radius: 10px; color: white; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
-    <div class="stat-box">
-        <span id="bal">0</span>
-        <div class="en-text">⚡ <span id="en-val">2500</span></div>
-    </div>
-    <div class="click-zone">
-        <div class="wolf-btn" onclick="tap()"></div>
-    </div>
-    <button class="save-btn" onclick="save()">💾 СОХРАНИТЬ И ВЫЙТИ</button>
-    <div class="nav">
-        <div class="nav-item" onclick="getBonus()">🎁 БОНУС</div>
-        <div class="nav-item" onclick="copyRef()">👥 РЕФЫ</div>
-        <div class="nav-item" onclick="tg.showAlert('Топ игроков: \n1. Marko: 50000\n2. Ты: '+bal)">🏆 ТОП</div>
-    </div>
+    <div id="balance">0</div>
+    <div class="energy">⚡ <span id="en-val">2500</span></div>
+    <button class="wolf-btn" onclick="tap()"></button>
+    <br>
+    <button class="save-btn" onclick="saveData()">💾 СОХРАНИТЬ И ВЫЙТИ</button>
+
     <script>
         const tg = window.Telegram.WebApp;
         const params = new URLSearchParams(window.location.search);
         let bal = parseInt(params.get('bal')) || 0;
         let en = parseInt(params.get('en')) || 2500;
-        const uid = params.get('uid');
 
         function updateUI() {
-            document.getElementById('bal').innerText = bal;
+            document.getElementById('balance').innerText = bal;
             document.getElementById('en-val').innerText = en;
         }
 
         function tap() {
-            if (en > 0) { bal++; en--; updateUI(); tg.HapticFeedback.impactOccurred('light'); }
+            if (en > 0) { 
+                bal++; en--; updateUI(); 
+                tg.HapticFeedback.impactOccurred('light'); 
+            }
         }
 
-        function save() {
+        function saveData() {
+            // ОТПРАВКА ДАННЫХ БОТУ
             tg.sendData(JSON.stringify({bal: bal, en: en}));
             tg.close();
         }
 
-        function copyRef() {
-            const link = "https://t.me/WolfMany_bot?start=" + uid;
-            const el = document.createElement('textarea');
-            el.value = link; document.body.appendChild(el);
-            el.select(); document.execCommand('copy');
-            document.body.removeChild(el);
-            tg.showAlert("Ссылка скопирована!");
-        }
-
-        function getBonus() {
-            const last = localStorage.getItem('l_b');
-            if (!last || Date.now() - last > 86400000) {
-                bal += 500; localStorage.setItem('l_b', Date.now());
-                updateUI(); tg.showAlert("Бонус +500!");
-            } else { tg.showAlert("Уже получал!"); }
-        }
-
-        setInterval(() => { if (en < 2500) { en++; updateUI(); } }, 1000);
-        updateUI(); tg.expand();
+        updateUI();
+        tg.expand();
     </script>
 </body>
 </html>
