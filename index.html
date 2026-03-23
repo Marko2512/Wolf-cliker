@@ -2,111 +2,48 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Wolf-clicker</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body { 
-            background: #0e1621; 
-            color: white; 
-            text-align: center; 
-            font-family: 'Arial', sans-serif; 
-            margin: 0; 
-            overflow: hidden; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            height: 100vh;
-        }
-        .score-container { 
-            font-size: 48px; 
-            margin-top: 40px; 
-            color: #64b5f6; 
-            display: flex; 
-            align-items: center; 
-            gap: 15px;
-            font-weight: bold;
-        }
-        .game-area {
-            flex-grow: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 100%;
-        }
-        #wolf-btn { 
-            width: 280px; 
-            height: 280px;
-            cursor: pointer; 
-            transition: transform 0.05s; 
-            user-select: none;
-            -webkit-user-drag: none;
-        }
-        #wolf-btn:active { transform: scale(0.95); }
-        
-        .footer {
-            width: 100%;
-            padding-bottom: 30px;
-        }
-        #save-btn { 
-            padding: 18px; 
-            background: #4db6ac; 
-            border: none; 
-            border-radius: 15px; 
-            color: white; 
-            font-weight: bold; 
-            cursor: pointer; 
-            width: 85%; 
-            font-size: 20px; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-        }
+        body { background: #0e1621; color: white; text-align: center; margin: 0; padding: 0; font-family: sans-serif; overflow: hidden; height: 100vh; display: flex; flex-direction: column; }
+        #score { font-size: 60px; margin-top: 30px; color: #64b5f6; font-weight: bold; }
+        .game { flex-grow: 1; display: flex; align-items: center; justify-content: center; }
+        /* Картинка волка */
+        #wolf-btn { width: 250px; height: 250px; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; }
+        /* Кнопка сохранить */
+        #save-btn { background: #4db6ac; color: white; border: none; padding: 15px; width: 80%; border-radius: 12px; font-size: 18px; margin-bottom: 30px; align-self: center; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
-    <div class="score-container">
-        <img src="https://img.icons8.com/emoji/48/money-bag-emoji.png" width="45">
-        <span id="score">0</span>
+    <div id="score">0</div>
+    <div class="game">
+        <img id="wolf-btn" src="https://raw.githubusercontent.com/marko2512/Wolf-cliker/main/wolf_image.png" onerror="this.src='https://img.icons8.com/color/250/wolf.png'">
     </div>
-
-    <div class="game-area">
-        <img id="wolf-btn" src="https://raw.githubusercontent.com/marko2512/Wolf-cliker/main/wolf_image.png" alt="WOLF">
-    </div>
-
-    <div class="footer">
-        <button id="save-btn">СОХРАНИТЬ МОНЕТЫ</button>
-    </div>
+    <button id="save-btn">СОХРАНИТЬ МОНЕТЫ</button>
 
     <script>
         const tg = window.Telegram.WebApp;
-        const scoreElement = document.getElementById('score');
-        const wolfBtn = document.getElementById('wolf-btn');
+        const scoreDisplay = document.getElementById('score');
+        const wolf = document.getElementById('wolf-btn');
         
-        // 1. Получаем баланс из ссылки бота (?bal=...)
-        const urlParams = new URLSearchParams(window.location.search);
-        let clicks = parseInt(urlParams.get('bal')) || 0;
-        
-        scoreElement.innerText = clicks;
+        let clicks = parseInt(new URLSearchParams(window.location.search).get('bal')) || 0;
+        scoreDisplay.innerText = clicks;
 
-        // 2. Логика клика
-        wolfBtn.addEventListener('touchstart', (e) => {
-            e.preventDefault(); // Чтобы не было лишних зумов
+        function doClick() {
             clicks++;
-            scoreElement.innerText = clicks;
-        });
+            scoreDisplay.innerText = clicks;
+            wolf.style.transform = "scale(0.95)";
+            setTimeout(() => { wolf.style.transform = "scale(1)"; }, 50);
+        }
 
-        // Для ПК (на всякий случай)
-        wolfBtn.addEventListener('click', () => {
-            clicks++;
-            scoreElement.innerText = clicks;
-        });
+        // Слушаем и тапы и клики
+        wolf.addEventListener('touchstart', (e) => { e.preventDefault(); doClick(); });
+        wolf.addEventListener('click', () => { doClick(); });
 
-        // 3. Сохранение
-        document.getElementById('save-btn').addEventListener('click', () => {
-            const data = JSON.stringify({ clicks: clicks });
-            tg.sendData(data);
+        document.getElementById('save-btn').onclick = () => {
+            tg.sendData(JSON.stringify({ clicks: clicks }));
             tg.close();
-        });
-
+        };
         tg.expand();
     </script>
 </body>
