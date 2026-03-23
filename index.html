@@ -7,19 +7,19 @@
     <style>
         body { background: radial-gradient(circle, #1b2838 0%, #0e1621 100%); color: white; text-align: center; margin: 0; padding: 0; font-family: sans-serif; overflow: hidden; height: 100vh; display: flex; flex-direction: column; user-select: none; }
         #top-bar { display: flex; justify-content: flex-end; padding: 15px 20px; }
-        #sound-btn { background: rgba(100, 181, 246, 0.2); border: 2px solid #64b5f6; color: white; padding: 10px; border-radius: 15px; font-size: 16px; cursor: pointer; }
-        #score { font-size: 65px; color: #ffffff; text-shadow: 0 0 25px #64b5f6; font-weight: 800; margin-top: 10px; }
-        .currency { font-size: 24px; color: #64b5f6; margin-left: 5px; }
+        #sound-btn { background: rgba(100, 181, 246, 0.2); border: 2px solid #64b5f6; color: white; padding: 10px 15px; border-radius: 15px; font-size: 16px; font-weight: bold; cursor: pointer; }
+        #score { font-size: 65px; color: #ffffff; text-shadow: 0 0 25px #64b5f6; font-weight: 800; margin-top: 5px; }
+        .currency { font-size: 22px; color: #64b5f6; }
         .game-area { flex-grow: 1; display: flex; align-items: center; justify-content: center; position: relative; }
-        #wolf-container { width: 280px; height: 280px; border-radius: 50%; background-image: url('https://raw.githubusercontent.com/Marko2512/Wolf-cliker/main/1774235761232.png'); background-size: cover; background-position: center; box-shadow: 0 0 50px rgba(100, 181, 246, 0.5); border: 5px solid #64b5f6; transition: transform 0.05s; cursor: pointer; -webkit-tap-highlight-color: transparent; z-index: 2; }
-        #save-btn { background: linear-gradient(135deg, #26a69a, #00796b); color: white; border: none; padding: 22px; width: 85%; border-radius: 20px; font-size: 22px; margin-bottom: 40px; align-self: center; font-weight: bold; }
-        .tap-number { position: absolute; color: #64b5f6; font-size: 35px; font-weight: bold; pointer-events: none; animation: flyUp 0.7s ease-out forwards; z-index: 10; }
+        #wolf-container { width: 280px; height: 280px; border-radius: 50%; background-image: url('https://raw.githubusercontent.com/Marko2512/Wolf-cliker/main/1774235761232.png'); background-size: cover; background-position: center; box-shadow: 0 0 50px rgba(100, 181, 246, 0.5); border: 5px solid #64b5f6; transition: transform 0.05s; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+        #save-btn { background: linear-gradient(135deg, #26a69a, #00796b); color: white; border: none; padding: 20px; width: 85%; border-radius: 20px; font-size: 22px; margin-bottom: 40px; align-self: center; font-weight: bold; }
+        .tap-number { position: absolute; color: #64b5f6; font-size: 35px; font-weight: bold; pointer-events: none; animation: flyUp 0.7s ease-out forwards; }
         @keyframes flyUp { 0% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(-150px); opacity: 0; } }
     </style>
 </head>
 <body>
-    <div id="top-bar"><button id="sound-btn">🔇 ЗВУК ВЫКЛ</button></div>
-    <div><span id="score">0</span><span class="currency">WOLF</span></div>
+    <div id="top-bar"><button id="sound-btn">🔇 ЗВУК: ВЫКЛ</button></div>
+    <div><span id="score">0</span> <span class="currency">WOLF</span></div>
     <div class="game-area"><div id="wolf-container"></div></div>
     <button id="save-btn">СОХРАНИТЬ РЕЗУЛЬТАТ</button>
 
@@ -33,14 +33,14 @@
         let isSoundOn = false;
         scoreDisplay.innerText = clicks;
 
-        // Встроенный звук "клик" в формате Base64 (не требует интернета)
-        const clickAudio = new Audio("data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YT1vT19vT18=");
+        // Используем звук, который точно открывается в браузере
+        const clickAudio = new Audio("https://actions.google.com/sounds/v1/foley/button_click.ogg");
 
         soundBtn.onclick = () => {
             isSoundOn = !isSoundOn;
-            soundBtn.innerText = isSoundOn ? '🔊 ЗВУК ВКЛ' : '🔇 ЗВУК ВЫКЛ';
-            // Активируем звук для браузера первым нажатием
-            clickAudio.play().catch(()=>{});
+            soundBtn.innerText = isSoundOn ? '🔊 ЗВУК: ВКЛ' : '🔇 ЗВУК: ВЫКЛ';
+            // Проигрываем пустой звук, чтобы "разрешить" аудио
+            clickAudio.play().then(() => { clickAudio.pause(); }).catch(e => console.log(e));
         };
 
         function handleTap(e) {
@@ -50,7 +50,8 @@
             
             if(isSoundOn) {
                 const s = clickAudio.cloneNode();
-                s.play().catch(()=>{});
+                s.volume = 0.5;
+                s.play().catch(e => console.log(e));
             }
 
             wolf.style.transform = "scale(0.94)";
@@ -66,7 +67,9 @@
             document.body.appendChild(num);
             setTimeout(() => num.remove(), 700);
             
-            if (window.navigator.vibrate) window.navigator.vibrate(15);
+            if (tg.HapticFeedback) {
+                tg.HapticFeedback.impactOccurred('medium');
+            }
         }
 
         wolf.addEventListener('touchstart', handleTap);
