@@ -2,44 +2,48 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wolfmany</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body { background: #0e1621; color: white; font-family: sans-serif; text-align: center; margin: 0; overflow: hidden; }
-        .score { font-size: 60px; font-weight: bold; color: #3498db; margin-top: 50px; }
-        .wolf-btn { 
-            width: 250px; height: 250px; border-radius: 50%; 
-            background: url('1774235761232.png') center/cover;
-            border: 6px solid #3498db; margin: 50px auto; 
-            box-shadow: 0 0 20px rgba(52, 152, 219, 0.5);
-        }
+        body { background: #0e1621; color: white; text-align: center; font-family: sans-serif; }
+        .score-container { font-size: 40px; margin-top: 50px; color: #64b5f6; display: flex; justify-content: center; align-items: center; gap: 10px; }
+        #wolf-btn { width: 250px; cursor: pointer; transition: transform 0.1s; margin-top: 30px; }
+        #wolf-btn:active { transform: scale(0.9); }
+        #save-btn { margin-top: 50px; padding: 15px 30px; background: #4db6ac; border: none; border-radius: 10px; color: white; font-weight: bold; cursor: pointer; width: 80%; font-size: 18px; }
     </style>
 </head>
 <body>
-    <div class="score">💰 <span id="score">0</span></div>
-    <div class="wolf-btn" id="btn"></div>
+    <div class="score-container">
+        <img src="https://img.icons8.com/emoji/48/money-bag-emoji.png" width="40">
+        <span id="score">0</span>
+    </div>
+
+    <img id="wolf-btn" src="https://raw.githubusercontent.com/marko2512/Wolf-cliker/main/wolf_image.png" alt="Wolf">
+
+    <button id="save-btn">СОХРАНИТЬ МОНЕТЫ</button>
 
     <script>
-        let tg = window.Telegram.WebApp;
-        let score = parseInt(localStorage.getItem('wolf_score')) || 0;
+        const tg = window.Telegram.WebApp;
+        const scoreElement = document.getElementById('score');
         
+        // Получаем баланс из ссылки, которую прислал бот
+        const urlParams = new URLSearchParams(window.location.search);
+        let clicks = parseInt(urlParams.get('bal')) || 0;
+        
+        scoreElement.innerText = clicks;
+
+        document.getElementById('wolf-btn').addEventListener('click', () => {
+            clicks++;
+            scoreElement.innerText = clicks;
+        });
+
+        document.getElementById('save-btn').addEventListener('click', () => {
+            tg.sendData(JSON.stringify({ clicks: clicks }));
+            tg.close();
+        });
+
         tg.expand();
-        tg.MainButton.setText("СОХРАНИТЬ МОНЕТЫ");
-        tg.MainButton.show();
-        
-        document.getElementById('score').innerText = score;
-
-        document.getElementById('btn').addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            score++;
-            document.getElementById('score').innerText = score;
-            localStorage.setItem('wolf_score', score);
-        });
-
-        // Эта кнопка внизу экрана точно отправит данные
-        tg.MainButton.onClick(function() {
-            tg.sendData(JSON.stringify({clicks: score}));
-        });
     </script>
 </body>
 </html>
