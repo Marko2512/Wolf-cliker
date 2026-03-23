@@ -12,33 +12,31 @@
         }
         #score { font-size: 45px; font-weight: bold; margin-top: 15px; color: #64b5f6; }
         
-        /* УМЕНЬШИЛИ ВОЛКА, ЧТОБЫ ПОДНЯТЬ КНОПКУ */
-        .game-area { flex-grow: 1; display: flex; align-items: center; justify-content: center; }
+        .game-area { flex-grow: 1; display: flex; align-items: center; justify-content: center; padding-bottom: 80px; }
         #wolf { 
-            width: 210px; height: 210px; border-radius: 50%; 
+            width: 200px; height: 200px; border-radius: 50%; 
             border: 5px solid #64b5f6; 
             background: url('https://raw.githubusercontent.com/Marko2512/Wolf-cliker/main/1774235761232.png') center/cover;
-            box-shadow: 0 0 20px rgba(100,181,246,0.2);
             transition: transform 0.05s;
         }
-        #wolf:active { transform: scale(0.95); }
         
-        /* УВЕЛИЧЕННЫЙ ОТСТУП СНИЗУ ДЛЯ ТВОЕГО ЭКРАНА */
-        .controls { 
-            padding-bottom: 60px; 
-            background: #0e1621;
+        /* КАРДИНАЛЬНОЕ ИСПРАВЛЕНИЕ ПОЗИЦИИ */
+        .bottom-nav {
+            position: fixed;
+            bottom: 100px; /* ПОДНИМАЕМ ОЧЕНЬ ВЫСОКО ОТ КРАЯ */
+            left: 0; width: 100%;
+            display: flex; flex-direction: column; align-items: center;
         }
         
-        #en-text { font-size: 16px; margin-bottom: 8px; font-weight: bold; }
-        #energy-bar { width: 75%; background: #222; height: 10px; border-radius: 10px; margin: 0 auto 25px; border: 1px solid #444; overflow: hidden; }
+        #en-text { font-size: 16px; margin-bottom: 5px; }
+        #energy-bar { width: 70%; background: #222; height: 8px; border-radius: 10px; margin-bottom: 15px; border: 1px solid #444; overflow: hidden; }
         #fill { background: #64b5f6; height: 100%; width: 100%; transition: 0.2s; }
         
         #save-btn { 
             background: #26a69a; border: none; color: white; 
-            padding: 14px 0; width: 80%; border-radius: 15px; 
+            padding: 12px 0; width: 80%; border-radius: 12px; 
             font-size: 18px; font-weight: bold; 
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-            -webkit-tap-highlight-color: transparent;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
         }
     </style>
 </head>
@@ -46,7 +44,7 @@
     <div id="score">0</div>
     <div class="game-area"><div id="wolf"></div></div>
     
-    <div class="controls">
+    <div class="bottom-nav">
         <div id="en-text">⚡ 2500 / 2500</div>
         <div id="energy-bar"><div id="fill"></div></div>
         <button id="save-btn">СОХРАНИТЬ И ВЫЙТИ</button>
