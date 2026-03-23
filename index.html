@@ -7,56 +7,37 @@
     <style>
         body { 
             background: radial-gradient(circle, #1b2838 0%, #0e1621 100%); 
-            color: white; 
-            text-align: center; 
-            margin: 0; padding: 0; 
-            font-family: sans-serif; 
-            overflow: hidden; 
-            height: 100vh; 
-            display: flex; flex-direction: column; 
-            user-select: none;
+            color: white; text-align: center; margin: 0; padding: 0; 
+            font-family: sans-serif; overflow: hidden; height: 100vh; 
+            display: flex; flex-direction: column; user-select: none;
         }
-        #score-container { margin-top: 50px; }
+        #top-bar { display: flex; justify-content: space-between; padding: 15px 20px; align-items: center; }
+        #sound-btn { background: rgba(255,255,255,0.1); border: none; color: white; padding: 10px; border-radius: 12px; font-size: 20px; cursor: pointer; }
+        
+        #score-container { margin-top: 20px; }
         #score { font-size: 60px; color: #ffffff; text-shadow: 0 0 20px #64b5f6; font-weight: 800; }
         .currency { font-size: 24px; color: #64b5f6; margin-left: 10px; }
         
-        .game-area { 
-            flex-grow: 1; 
-            display: flex; align-items: center; justify-content: center; 
-            position: relative;
-        }
+        .game-area { flex-grow: 1; display: flex; align-items: center; justify-content: center; position: relative; }
         
-        /* Твой волк без лишних наложений */
         #wolf-container {
-            width: 280px; height: 280px;
-            border-radius: 50%;
+            width: 280px; height: 280px; border-radius: 50%;
             background-image: url('https://raw.githubusercontent.com/Marko2512/Wolf-cliker/main/1774235761232.png');
-            background-size: cover;
-            background-position: center;
+            background-size: cover; background-position: center;
             box-shadow: 0 0 40px rgba(100, 181, 246, 0.4);
-            border: 4px solid #64b5f6;
-            transition: transform 0.05s;
-            cursor: pointer;
-            -webkit-tap-highlight-color: transparent;
-            z-index: 2;
+            border: 4px solid #64b5f6; transition: transform 0.05s;
+            cursor: pointer; -webkit-tap-highlight-color: transparent; z-index: 2;
         }
 
         #save-btn { 
             background: #26a69a; color: white; border: none; 
             padding: 20px; width: 85%; border-radius: 20px; 
-            font-size: 22px; margin-bottom: 40px; 
-            align-self: center; font-weight: bold;
+            font-size: 22px; margin-bottom: 40px; align-self: center; font-weight: bold;
         }
 
-        /* Анимация цифр +1 */
         .tap-number {
-            position: absolute;
-            color: #64b5f6;
-            font-size: 32px;
-            font-weight: bold;
-            pointer-events: none;
-            animation: flyUp 0.6s ease-out forwards;
-            z-index: 10;
+            position: absolute; color: #64b5f6; font-size: 32px; font-weight: bold;
+            pointer-events: none; animation: flyUp 0.6s ease-out forwards; z-index: 10;
         }
 
         @keyframes flyUp {
@@ -66,6 +47,10 @@
     </style>
 </head>
 <body>
+    <div id="top-bar">
+        <div></div> <button id="sound-btn">🔊</button>
+    </div>
+
     <div id="score-container">
         <span id="score">0</span><span class="currency">WOLF</span>
     </div>
@@ -80,26 +65,37 @@
         const tg = window.Telegram.WebApp;
         const scoreDisplay = document.getElementById('score');
         const wolf = document.getElementById('wolf-container');
-        const gameArea = document.getElementById('game-area');
+        const soundBtn = document.getElementById('sound-btn');
         
         let clicks = parseInt(new URLSearchParams(window.location.search).get('bal')) || 0;
+        let isSoundOn = true;
         scoreDisplay.innerText = clicks;
 
+        // Звук клика (короткий и четкий)
+        const clickSound = new Audio('https://www.soundjay.com/buttons/button-16.mp3');
+
+        soundBtn.onclick = () => {
+            isSoundOn = !isSoundOn;
+            soundBtn.innerText = isSoundOn ? '🔊' : '🔇';
+        };
+
         function handleTap(e) {
-            e.preventDefault();
+            if(e) e.preventDefault();
             clicks++;
             scoreDisplay.innerText = clicks;
             
-            // Анимация нажатия
+            if(isSoundOn) {
+                clickSound.currentTime = 0;
+                clickSound.play();
+            }
+
             wolf.style.transform = "scale(0.95)";
             setTimeout(() => { wolf.style.transform = "scale(1)"; }, 50);
 
-            // Создаем цифру +1
             const num = document.createElement('div');
             num.className = 'tap-number';
             num.innerText = '+1';
             
-            // Определяем место клика
             let x, y;
             if (e.touches) {
                 x = e.touches[0].clientX;
@@ -111,7 +107,6 @@
             
             num.style.left = x + 'px';
             num.style.top = (y - 50) + 'px';
-            
             document.body.appendChild(num);
             setTimeout(() => num.remove(), 600);
             
